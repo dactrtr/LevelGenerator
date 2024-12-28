@@ -71,7 +71,7 @@ struct EnemyRow: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 8)
-        .background(Color(uiColor: .secondarySystemGroupedBackground))
+        .background(PlatformColor.secondaryBackground)
         .cornerRadius(8)
         .padding(.horizontal, 8)
     }

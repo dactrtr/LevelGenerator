@@ -25,6 +25,16 @@ struct ContentView: View {
     @State private var placedItems: [PlacedItem] = []
     
     var body: some View {
+        #if os(iOS)
+        NavigationView {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+    
+    var content: some View {
         HStack(spacing: 0) {
             // Left Panel
             VStack(spacing: 0) {
@@ -39,7 +49,7 @@ struct ContentView: View {
                 ItemListView(placedItems: $placedItems)
             }
             .frame(width: 300)
-            .background(Color(uiColor: .systemGroupedBackground))
+            .background(PlatformColor.groupedBackground)
             
             // Center Panel
             VStack(alignment: .center, spacing: 16) {
@@ -48,7 +58,7 @@ struct ContentView: View {
                            tile: $tile,
                            light: $light,
                            shadow: $shadow)
-                    .background(Color(uiColor: .secondarySystemGroupedBackground))
+                    .background(PlatformColor.secondaryBackground)
                     .cornerRadius(10)
                 
                 MapView(placedItems: placedItems,
@@ -83,8 +93,7 @@ struct ContentView: View {
                 .frame(maxHeight: .infinity)
             }
             .padding()
-            
-            .background(Color(uiColor: .systemBackground))
+            .background(PlatformColor.background)
             
             // Right Panel
             VStack(spacing: 0) {
@@ -99,8 +108,12 @@ struct ContentView: View {
                 EnemyListView(placedItems: $placedItems)
             }
             .frame(width: 300)
-            .background(Color(uiColor: .systemGroupedBackground))
+            .background(PlatformColor.groupedBackground)
         }
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationTitle("Level Generator")
+        #endif
     }
 }
 

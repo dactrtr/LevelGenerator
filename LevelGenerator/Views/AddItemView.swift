@@ -28,7 +28,7 @@ struct AddItemView: View {
                                 RoundedRectangle(cornerRadius: 8)
                                     .fill(selectedItem == item ? 
                                          Color.blue.opacity(0.2) : 
-                                         Color(uiColor: .secondarySystemGroupedBackground))
+                                         PlatformColor.secondaryBackground)
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8)

@@ -1,5 +1,9 @@
 import SwiftUI
+#if os(iOS)
 import UIKit
+#else
+import AppKit
+#endif
 
 struct JsonPreviewView: View {
     let level: Int
@@ -52,7 +56,12 @@ struct JsonPreviewView: View {
     }
     
     private func copyToClipboard() {
+        #if os(iOS)
         UIPasteboard.general.string = generateJson()
+        #else
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(generateJson(), forType: .string)
+        #endif
         showCopiedAlert = true
     }
     
@@ -107,13 +116,24 @@ struct JsonPreviewView: View {
         }
         
         return props.map { prop in
-            """
-                    {
-                        type = '\(prop.type)',
-                        x = \(Int(prop.x)),
-                        y = \(Int(prop.y))\(prop.nocollide ? ",\n                        nocollide = true" : "")
-                    }
-            """
+            if prop.nocollide {
+                """
+                        {
+                            type = '\(prop.type)',
+                            x = \(Int(prop.x)),
+                            y = \(Int(prop.y)),
+                            nocollide = true
+                        }
+                """
+            } else {
+                """
+                        {
+                            type = '\(prop.type)',
+                            x = \(Int(prop.x)),
+                            y = \(Int(prop.y))
+                        }
+                """
+            }
         }.joined(separator: ",\n")
     }
 } 

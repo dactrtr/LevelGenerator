@@ -29,7 +29,7 @@ struct AddEnemyView: View {
                                 RoundedRectangle(cornerRadius: 8)
                                     .fill(selectedEnemy == enemy ? 
                                          Color.red.opacity(0.2) : 
-                                         Color(uiColor: .secondarySystemGroupedBackground))
+                                         PlatformColor.secondaryBackground)
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8)
