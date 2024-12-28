@@ -1,0 +1,84 @@
+import SwiftUI
+
+struct JsonPreviewView: View {
+    let level: Int
+    let floorNumber: Int
+    let tile: Int
+    let light: Double
+    let shadow: Bool
+    let placedItems: [PlacedItem]
+    
+    var body: some View {
+        ScrollView {
+            Text(generateJson())
+                .font(.system(.body, design: .monospaced))
+                .padding()
+        }
+        .frame(height: 200)
+        .background(Color.black.opacity(0.05))
+    }
+    
+    private func generateJson() -> String {
+        """
+        {
+            floor = {
+                level = \(level),
+                visited = false,
+                floorNumber = \(floorNumber),
+                tile = \(tile),
+                light = \(String(format: "%.1f", light)),
+                shadow = \(shadow),
+                comic = {
+                    wasPlayed = false,
+                    name = "intro-comic",
+                    play = "enter"
+                },
+                triggers = {},
+                enemies = {
+        \(generateEnemiesSection())
+                },
+                doors = {},
+                items = {},
+                props = {
+        \(generatePropsSection())
+                }
+            }
+        }
+        """
+    }
+    
+    private func generateEnemiesSection() -> String {
+        let enemies = placedItems.filter { $0.itemType == .enemy }
+        if enemies.isEmpty {
+            return ""
+        }
+        
+        return enemies.map { enemy in
+            """
+                    {
+                        name = "\(enemy.type)",
+                        x = \(Int(enemy.x)),
+                        y = \(Int(enemy.y)),
+                        speed = \(String(format: "%.1f", enemy.speed ?? 1.0))
+                    }
+            """
+        }.joined(separator: ",\n")
+    }
+    
+    private func generatePropsSection() -> String {
+        let props = placedItems.filter { $0.itemType == .furniture }
+        if props.isEmpty {
+            return ""
+        }
+        
+        return props.map { prop in
+            """
+                    {
+                        type = '\(prop.type)',
+                        x = \(Int(prop.x)),
+                        y = \(Int(prop.y))\(prop.nocollide ? ",\n                        nocollide = true" : "")
+                    }
+            """
+        }.joined(separator: ",\n")
+    }
+} 

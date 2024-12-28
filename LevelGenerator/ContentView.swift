@@ -56,6 +56,15 @@ struct ContentView: View {
                        enemyX: enemyX,
                        enemyY: enemyY)
                 
+                JsonPreviewView(
+                    level: level,
+                    floorNumber: floorNumber,
+                    tile: tile,
+                    light: light,
+                    shadow: shadow,
+                    placedItems: placedItems
+                )
+                
                 Spacer()
             }
             .padding()
