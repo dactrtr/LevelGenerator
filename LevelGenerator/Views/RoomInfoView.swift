@@ -21,12 +21,12 @@ struct RoomInfoView: View {
                         // Room Info
                         GroupBox {
                             VStack(alignment: .leading, spacing: 12) {
-                                // Level, Floor and Tile controls in one row
+                                // Level, Floor, Tile y Shadow en una línea
                                 HStack(spacing: 16) {
-                                    // Level control
-                                    VStack(alignment: .leading, spacing: 4) {
+                                    // Level
+                                    HStack(spacing: 4) {
                                         Text("Level")
-                                            .font(.footnote)
+                                            .font(.subheadline)
                                             .foregroundStyle(.secondary)
                                         Stepper(value: $level, in: 1...100) {
                                             Text("\(level)")
@@ -36,10 +36,10 @@ struct RoomInfoView: View {
                                         }
                                     }
                                     
-                                    // Floor control
-                                    VStack(alignment: .leading, spacing: 4) {
+                                    // Floor
+                                    HStack(spacing: 4) {
                                         Text("Floor")
-                                            .font(.footnote)
+                                            .font(.subheadline)
                                             .foregroundStyle(.secondary)
                                         Stepper(value: $floorNumber, in: 1...10) {
                                             Text("\(floorNumber)")
@@ -49,10 +49,10 @@ struct RoomInfoView: View {
                                         }
                                     }
                                     
-                                    // Tile control
-                                    VStack(alignment: .leading, spacing: 4) {
+                                    // Tile
+                                    HStack(spacing: 4) {
                                         Text("Tile")
-                                            .font(.footnote)
+                                            .font(.subheadline)
                                             .foregroundStyle(.secondary)
                                         Stepper(value: $tile, in: 1...20) {
                                             Text("\(tile)")
@@ -61,6 +61,10 @@ struct RoomInfoView: View {
                                                 .foregroundStyle(.primary)
                                         }
                                     }
+                                    
+                                    // Shadow toggle
+                                    Toggle("Enable Shadow", isOn: $shadow)
+                                        .toggleStyle(SwitchToggleStyle(tint: .blue))
                                 }
                                 
                                 Divider()
@@ -73,15 +77,6 @@ struct RoomInfoView: View {
                                     Slider(value: $light)
                                         .tint(.blue)
                                 }
-                                
-                                Divider()
-                                
-                                // Shadow toggle
-                                Toggle(isOn: $shadow) {
-                                    Text("Enable Shadow")
-                                        .foregroundStyle(.primary)
-                                }
-                                .toggleStyle(SwitchToggleStyle(tint: .blue))
                             }
                             .padding(.vertical, 4)
                         }
