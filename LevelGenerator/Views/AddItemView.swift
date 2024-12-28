@@ -7,7 +7,7 @@ struct AddItemView: View {
     @Binding var placedItems: [PlacedItem]
     @State private var nocollide: Bool = false
     
-    let availableItems = ["chair", "fellchair", "box", "trash", "toxic", "table", "blood", "blood2", "deadrat", "xtree-1", "xtree-2", "xtree-3", "xtree-4"]
+    let availableItems = ["chair", "fellchair", "box", "trash", "toxic", "table", "blood", "blood2", "deadrat", ]
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -15,7 +15,9 @@ struct AddItemView: View {
                 .font(.headline)
                 .padding(.top)
             
-            HStack(spacing: 12) {
+            LazyVGrid(columns: [
+                GridItem(.adaptive(minimum: 48, maximum: 48), spacing: 8)
+            ], spacing: 8) {
                 ForEach(availableItems, id: \.self) { item in
                     Button(action: {
                         selectedItem = item

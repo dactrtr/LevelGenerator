@@ -15,7 +15,9 @@ struct AddEnemyView: View {
                 .font(.headline)
                 .padding(.top)
             
-            HStack(spacing: 12) {
+            LazyVGrid(columns: [
+                GridItem(.adaptive(minimum: 56, maximum: 56), spacing: 8)
+            ], spacing: 8) {
                 ForEach(availableEnemies, id: \.self) { enemy in
                     Button(action: {
                         selectedEnemy = enemy
