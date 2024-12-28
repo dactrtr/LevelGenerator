@@ -77,12 +77,14 @@ struct AddItemView: View {
                     )
                 )
             } label: {
-                Label("Add Item", systemImage: "plus.circle.fill")
+                Label("Add", systemImage: "plus")
+                    .font(.footnote)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 6)
             }
             .buttonStyle(.borderedProminent)
             .tint(.blue)
+            .controlSize(.small)
         }
         .padding(12)
     }
