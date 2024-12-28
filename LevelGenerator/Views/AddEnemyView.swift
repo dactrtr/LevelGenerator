@@ -5,8 +5,7 @@ struct AddEnemyView: View {
     @Binding var enemyX: Double
     @Binding var enemyY: Double
     @Binding var placedItems: [PlacedItem]
-    @State private var nocollide: Bool = false
-    @State private var speed: Double = 1.0  // Valor por defecto
+    @State private var speed: Double = 1.0
     
     let availableEnemies = ["brocorat", "frogcolli"]
     
@@ -42,9 +41,6 @@ struct AddEnemyView: View {
                 Slider(value: $speed, in: 0.1...5.0)
             }
             
-            Toggle("No Collide", isOn: $nocollide)
-                .padding(.vertical, 5)
-            
             HStack {
                 Image(selectedEnemy)
                     .resizable()
@@ -57,7 +53,6 @@ struct AddEnemyView: View {
                         x: enemyX,
                         y: enemyY,
                         itemType: .enemy,
-                        nocollide: nocollide,
                         speed: speed
                     )
                     placedItems.append(newItem)

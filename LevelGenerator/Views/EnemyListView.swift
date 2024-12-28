@@ -56,16 +56,6 @@ struct EnemyRow: View {
                             .stroke(Color.red, lineWidth: 1)
                     )
             }
-            if item.nocollide {
-                Text("NC")
-                    .foregroundColor(.red)
-                    .font(.caption)
-                    .padding(.horizontal, 4)
-                    .background(
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(Color.red, lineWidth: 1)
-                    )
-            }
             Spacer()
             Button(action: onDelete) {
                 Image(systemName: "trash")
