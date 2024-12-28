@@ -8,55 +8,70 @@ struct RoomInfoView: View {
     @Binding var shadow: Bool
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 16) {
             Text("Room Information")
                 .font(.headline)
             
-            HStack {
-                // Primera columna
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text("Level:")
-                            .frame(width: 45, alignment: .leading)
-                        Stepper(value: $level, in: 1...100) {
-                            Text("\(level)")
+            GroupBox {
+                VStack(spacing: 16) {
+                    // Level, Floor and Tile controls in one row
+                    HStack(spacing: 24) {
+                        // Level control
+                        VStack(alignment: .leading) {
+                            Text("Level")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            Stepper(value: $level, in: 1...100) {
+                                Text("\(level)")
+                                    .monospacedDigit()
+                                    .frame(width: 30, alignment: .leading)
+                            }
+                        }
+                        
+                        // Floor control
+                        VStack(alignment: .leading) {
+                            Text("Floor")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            Stepper(value: $floorNumber, in: 1...10) {
+                                Text("\(floorNumber)")
+                                    .monospacedDigit()
+                                    .frame(width: 30, alignment: .leading)
+                            }
+                        }
+                        
+                        // Tile control
+                        VStack(alignment: .leading) {
+                            Text("Tile")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            Stepper(value: $tile, in: 1...20) {
+                                Text("\(tile)")
+                                    .monospacedDigit()
+                                    .frame(width: 30, alignment: .leading)
+                            }
                         }
                     }
                     
-                    HStack {
-                        Text("Floor:")
-                            .frame(width: 45, alignment: .leading)
-                        Stepper(value: $floorNumber, in: 1...10) {
-                            Text("\(floorNumber)")
-                        }
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                
-                // Segunda columna
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text("Tile:")
-                            .frame(width: 35, alignment: .leading)
-                        Stepper(value: $tile, in: 1...20) {
-                            Text("\(tile)")
-                        }
-                    }
+                    Divider()
                     
-                    HStack {
-                        Text("Light:")
-                            .frame(width: 35, alignment: .leading)
+                    // Light control
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Light: \(light, specifier: "%.1f")")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
                         Slider(value: $light)
-                            .frame(width: 80)
+                            .accentColor(.blue)
                     }
+                    
+                    Divider()
+                    
+                    // Shadow toggle
+                    Toggle("Enable Shadow", isOn: $shadow)
+                        .toggleStyle(SwitchToggleStyle(tint: .blue))
                 }
-                .frame(maxWidth: .infinity)
-                
-                // Tercera columna
-                Toggle("Shadow", isOn: $shadow)
-                    .frame(width: 80)
             }
         }
-        .padding(8)
+        .padding(12)
     }
 } 
