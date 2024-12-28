@@ -68,8 +68,7 @@ struct JsonPreviewView: View {
                     {
                         type = "\(item.type)",
                         x = \(Int(item.x)),
-                        y = \(Int(item.y)),
-                        nocollide = \(item.nocollide)
+                        y = \(Int(item.y))\(item.nocollide ? ",\n            nocollide = true" : "")
                     }
             """
         }.joined(separator: ",\n")
