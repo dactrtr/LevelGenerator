@@ -12,6 +12,10 @@ struct JsonPreviewView: View {
     let light: Double
     let shadow: Bool
     let placedItems: [PlacedItem]
+    let doorTop: Bool
+    let doorRight: Bool
+    let doorDown: Bool
+    let doorLeft: Bool
     let onReset: () -> Void
     @State private var showCopiedAlert = false
     
@@ -94,6 +98,25 @@ struct JsonPreviewView: View {
             """
         }.joined(separator: ",\n")
         
+        // Generar el JSON de las puertas
+        let doorsJson = [
+            (direction: "top", isOpen: doorTop),
+            (direction: "right", isOpen: doorRight),
+            (direction: "down", isOpen: doorDown),
+            (direction: "left", isOpen: doorLeft)
+        ]
+        .filter { $0.isOpen } // Solo incluir las puertas que están activas
+        .map { door in
+            """
+                        {
+                            direction = '\(door.direction)',
+                            open = 'open',
+                            leadsTo = 0
+                        }
+            """
+        }
+        .joined(separator: ",\n")
+        
         return """
         --\(floorNumber)
         {
@@ -104,8 +127,11 @@ struct JsonPreviewView: View {
                 tile = \(tile),
                 light = \(String(format: "%.1f", light)),
                 shadow = \(shadow),
+                doors = {
+        \(doorsJson)
+                },
                 comic = {},
-                items= {},
+                items = {},
                 triggers = {
         \(triggersJson)
                 },

@@ -34,6 +34,12 @@ struct ContentView: View {
     @State private var triggerWidth: Double = 60
     @State private var triggerHeight: Double = 30
     
+    // Estados para las puertas
+    @State private var doorTop: Bool = false
+    @State private var doorRight: Bool = false
+    @State private var doorDown: Bool = false
+    @State private var doorLeft: Bool = false
+    
     var body: some View {
         #if os(iOS)
         content
@@ -47,11 +53,17 @@ struct ContentView: View {
          
             // Center Panel
             VStack(alignment: .center, spacing: 16) {
-                RoomInfoView(level: $level,
-                           floorNumber: $floorNumber,
-                           tile: $tile,
-                           light: $light,
-                           shadow: $shadow)
+                RoomInfoView(
+                    level: $level,
+                    floorNumber: $floorNumber,
+                    tile: $tile,
+                    light: $light,
+                    shadow: $shadow,
+                    doorTop: $doorTop,
+                    doorRight: $doorRight,
+                    doorDown: $doorDown,
+                    doorLeft: $doorLeft
+                )
                     .background(PlatformColor.secondaryBackground)
                     .cornerRadius(10)
                 
@@ -81,6 +93,10 @@ struct ContentView: View {
                     light: light,
                     shadow: shadow,
                     placedItems: placedItems,
+                    doorTop: doorTop,
+                    doorRight: doorRight,
+                    doorDown: doorDown,
+                    doorLeft: doorLeft,
                     onReset: {
                         level = 1
                         floorNumber = 1
