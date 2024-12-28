@@ -17,7 +17,9 @@ struct UnifiedControlView: View {
     @Binding var placedItems: [PlacedItem]
     @Binding var triggerX: Double
     @Binding var triggerY: Double
-    @State private var selectedMode: ControlMode = .items
+    @Binding var selectedMode: ControlMode
+    @Binding var triggerWidth: Double
+    @Binding var triggerHeight: Double
     
     var body: some View {
         VStack(spacing: 16) {
@@ -65,7 +67,9 @@ struct UnifiedControlView: View {
                     AddTriggerView(
                         currentX: $triggerX,
                         currentY: $triggerY,
-                        placedItems: $placedItems
+                        placedItems: $placedItems,
+                        previewWidth: $triggerWidth,
+                        previewHeight: $triggerHeight
                     )
                     
                     Divider()

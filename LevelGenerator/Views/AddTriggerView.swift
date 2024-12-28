@@ -4,8 +4,8 @@ struct AddTriggerView: View {
     @Binding var currentX: Double
     @Binding var currentY: Double
     @Binding var placedItems: [PlacedItem]
-    @State private var width: Double = 60
-    @State private var height: Double = 30
+    @Binding var previewWidth: Double
+    @Binding var previewHeight: Double
     @State private var script: Int = 1
     
     var body: some View {
@@ -35,18 +35,18 @@ struct AddTriggerView: View {
                     
                     // Width & Height
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Width: \(Int(width))")
+                        Text("Width: \(Int(previewWidth))")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
-                        Slider(value: $width, in: 30...200)
+                        Slider(value: $previewWidth, in: 30...200)
                             .tint(.purple)
                     }
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Height: \(Int(height))")
+                        Text("Height: \(Int(previewHeight))")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
-                        Slider(value: $height, in: 30...200)
+                        Slider(value: $previewHeight, in: 30...200)
                             .tint(.purple)
                     }
                     
@@ -72,8 +72,8 @@ struct AddTriggerView: View {
                         x: currentX,
                         y: currentY,
                         itemType: .trigger,
-                        width: width,
-                        height: height,
+                        width: previewWidth,
+                        height: previewHeight,
                         script: script
                     )
                 )

@@ -29,6 +29,11 @@ struct ContentView: View {
     
     @State private var placedItems: [PlacedItem] = []
     
+    @State private var selectedMode: ControlMode = .items
+    
+    @State private var triggerWidth: Double = 60
+    @State private var triggerHeight: Double = 30
+    
     var body: some View {
         #if os(iOS)
         content
@@ -39,21 +44,7 @@ struct ContentView: View {
     
     var content: some View {
         HStack(spacing: 0) {
-            // Left Panel
-            VStack(spacing: 0) {
-                AddItemView(selectedItem: $selectedItem,
-                           currentX: $currentX,
-                           currentY: $currentY,
-                           placedItems: $placedItems)
-                
-                Divider()
-                    .padding(.vertical, 8)
-                
-                ItemListView(placedItems: $placedItems)
-            }
-            .frame(width: 300)
-            .background(PlatformColor.groupedBackground)
-            
+         
             // Center Panel
             VStack(alignment: .center, spacing: 16) {
                 RoomInfoView(level: $level,
@@ -64,13 +55,20 @@ struct ContentView: View {
                     .background(PlatformColor.secondaryBackground)
                     .cornerRadius(10)
                 
-                MapView(placedItems: placedItems,
-                       selectedItem: selectedItem,
-                       currentX: currentX,
-                       currentY: currentY,
-                       selectedEnemy: selectedEnemy,
-                       enemyX: enemyX,
-                       enemyY: enemyY)
+                MapView(
+                    placedItems: placedItems,
+                    selectedItem: selectedItem,
+                    currentX: currentX,
+                    currentY: currentY,
+                    selectedEnemy: selectedEnemy,
+                    enemyX: enemyX,
+                    enemyY: enemyY,
+                    showTriggerPreview: selectedMode == .triggers,
+                    triggerX: triggerX,
+                    triggerY: triggerY,
+                    triggerWidth: triggerWidth,
+                    triggerHeight: triggerHeight
+                )
                     .overlay(
                         Rectangle()
                             .stroke(Color.gray.opacity(0.2), lineWidth: 1)
@@ -109,7 +107,10 @@ struct ContentView: View {
                 enemySpeed: $enemySpeed,
                 placedItems: $placedItems,
                 triggerX: $triggerX,
-                triggerY: $triggerY
+                triggerY: $triggerY,
+                selectedMode: $selectedMode,
+                triggerWidth: $triggerWidth,
+                triggerHeight: $triggerHeight
             )
             .frame(width: 300)
         }

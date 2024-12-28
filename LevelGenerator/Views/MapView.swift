@@ -8,6 +8,11 @@ struct MapView: View {
     let selectedEnemy: String
     let enemyX: Double
     let enemyY: Double
+    let showTriggerPreview: Bool
+    let triggerX: Double
+    let triggerY: Double
+    let triggerWidth: Double
+    let triggerHeight: Double
     
     var body: some View {
         ZStack {
@@ -48,6 +53,13 @@ struct MapView: View {
                 .frame(width: selectedEnemy == "frogcolli" ? 40 : 32,
                        height: selectedEnemy == "frogcolli" ? 40 : 32)
                 .position(x: enemyX, y: enemyY)
+            
+            if showTriggerPreview {
+                Rectangle()
+                    .stroke(Color.purple.opacity(0.5), lineWidth: 1)
+                    .frame(width: triggerWidth, height: triggerHeight)
+                    .position(x: triggerX, y: triggerY)
+            }
             
             ForEach(placedItems.filter { $0.itemType == .trigger }) { trigger in
                 Rectangle()
