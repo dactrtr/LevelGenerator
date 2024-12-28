@@ -36,10 +36,10 @@ struct ItemRow: View {
         HStack(spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(Color.blue.opacity(0.2))
+                    .fill(Color.green.opacity(0.2))
                     .frame(width: 24, height: 24)
                 Text("\(index + 1)")
-                    .foregroundColor(.blue)
+                    .foregroundColor(.green)
                     .font(.system(size: 12, weight: .bold))
             }
             
@@ -52,12 +52,12 @@ struct ItemRow: View {
             }
             
             if item.nocollide {
-                Text("NC")
+                Text("No Collide")
                     .font(.caption2)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(Color.blue.opacity(0.1))
-                    .foregroundColor(.blue)
+                    .background(Color.green.opacity(0.1))
+                    .foregroundColor(.green)
                     .cornerRadius(4)
             }
             
@@ -65,7 +65,7 @@ struct ItemRow: View {
             
             Button(action: onDelete) {
                 Image(systemName: "trash")
-                    .foregroundColor(.red)
+                    .foregroundColor(.green)
             }
             .buttonStyle(.borderless)
         }

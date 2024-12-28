@@ -24,26 +24,27 @@ struct MapView: View {
                 .stroke(Color.gray, lineWidth: 2)
                 .frame(width: 400, height: 240)
             
-            ForEach(Array(placedItems.filter { $0.itemType != .trigger }.enumerated()), 
-                   id: \.element.id) { index, item in
-                ZStack {
-                    Image(item.type)
-                        .resizable()
-                        .frame(width: item.size, height: item.size)
-                    
-                    if !showTriggerPreview {
-                        ZStack {
-                            Circle()
-                                .fill(item.itemType == .furniture ? Color.green : Color.red)
-                                .frame(width: 16, height: 16)
-                            Text("\(index + 1)")
-                                .foregroundColor(.white)
-                                .font(.system(size: 10, weight: .bold))
+            ForEach(Array(placedItems.enumerated()), id: \.element.id) { index, item in
+                if item.itemType != .trigger {
+                    ZStack {
+                        Image(item.type)
+                            .resizable()
+                            .frame(width: item.size, height: item.size)
+                        
+                        if !showTriggerPreview {
+                            ZStack {
+                                Circle()
+                                    .fill(item.itemType == .furniture ? Color.green : Color.red)
+                                    .frame(width: 16, height: 16)
+                                Text("\(placedItems.prefix(index + 1).filter { $0.itemType == item.itemType }.count)")
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 10, weight: .bold))
+                            }
+                            .offset(x: item.size/2 - 4, y: -item.size/2 + 4)
                         }
-                        .offset(x: item.size/2 - 4, y: -item.size/2 + 4)
                     }
+                    .position(x: item.x, y: item.y)
                 }
-                .position(x: item.x, y: item.y)
             }
             
             if !showTriggerPreview {
@@ -66,27 +67,28 @@ struct MapView: View {
                     .position(x: triggerX, y: triggerY)
             }
             
-            ForEach(Array(placedItems.filter { $0.itemType == .trigger }.enumerated()), 
-                   id: \.element.id) { index, trigger in
-                ZStack {
-                    Rectangle()
-                        .fill(Color.purple.opacity(0.2))
-                        .frame(width: trigger.width ?? 60, height: trigger.height ?? 30)
-                        .overlay(
-                            Rectangle()
-                                .stroke(Color.purple, lineWidth: 1)
-                        )
-                    
+            ForEach(Array(placedItems.enumerated()), id: \.element.id) { index, item in
+                if item.itemType == .trigger {
                     ZStack {
-                        Circle()
-                            .fill(Color.purple)
-                            .frame(width: 16, height: 16)
-                        Text("\(index + 1)")
-                            .foregroundColor(.white)
-                            .font(.system(size: 10, weight: .bold))
+                        Rectangle()
+                            .fill(Color.purple.opacity(0.2))
+                            .frame(width: item.width ?? 60, height: item.height ?? 30)
+                            .overlay(
+                                Rectangle()
+                                    .stroke(Color.purple, lineWidth: 1)
+                            )
+                        
+                        ZStack {
+                            Circle()
+                                .fill(Color.purple)
+                                .frame(width: 16, height: 16)
+                            Text("\(placedItems.prefix(index + 1).filter { $0.itemType == .trigger }.count)")
+                                .foregroundColor(.white)
+                                .font(.system(size: 10, weight: .bold))
+                        }
                     }
+                    .position(x: item.x, y: item.y)
                 }
-                .position(x: trigger.x, y: trigger.y)
             }
         }
         .frame(width: 400, height: 240)

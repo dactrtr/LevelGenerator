@@ -105,13 +105,14 @@ struct JsonPreviewView: View {
                 light = \(String(format: "%.1f", light)),
                 shadow = \(shadow),
                 comic = {},
+                items= {},
                 triggers = {
         \(triggersJson)
                 },
                 enemies = {
         \(enemiesJson)
                 },
-                items = {
+                props = {
         \(furnitureJson)
                 }
             }
