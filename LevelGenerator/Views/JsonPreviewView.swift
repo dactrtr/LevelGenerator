@@ -16,24 +16,26 @@ struct JsonPreviewView: View {
     @State private var showCopiedAlert = false
     
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(spacing: 8) {
             ScrollView {
                 Text(generateJson())
-                    .font(.system(.body, design: .monospaced))
-                    .textSelection(.enabled)
+                    .font(.system(size: 11, design: .monospaced))
                     .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .background(Color.black.opacity(0.05))
             
-            HStack {
-                Button(action: onReset) {
+            // Botones
+            HStack(spacing: 20) {
+                Button(action: {
+                    onReset()
+                }) {
                     HStack {
-                        Image(systemName: "arrow.counterclockwise")
-                        Text("Reset")
+                        Image(systemName: "trash")
+                        Text("Reset Level")
                     }
                     .foregroundColor(.red)
                 }
-                
-                Spacer()
                 
                 Button(action: {
                     copyToClipboard()
