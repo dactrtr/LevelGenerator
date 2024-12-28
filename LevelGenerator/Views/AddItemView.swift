@@ -7,55 +7,58 @@ struct AddItemView: View {
     @Binding var placedItems: [PlacedItem]
     @State private var nocollide: Bool = false
     
-    let availableItems = ["chair", "fellchair", "box", "trash", "toxic", "table", "blood", "blood2", "deadrat", ]
+    let items = ["chair", "table", "box", "trash", "blood", "blood2", "toxic", "deadrat"]
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Item Control")
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Items")
                 .font(.headline)
-                .padding(.top)
+                .padding(.top, 8)
             
             LazyVGrid(columns: [
                 GridItem(.adaptive(minimum: 48, maximum: 48), spacing: 8)
             ], spacing: 8) {
-                ForEach(availableItems, id: \.self) { item in
-                    Button(action: {
+                ForEach(items, id: \.self) { item in
+                    Button {
                         selectedItem = item
-                    }) {
+                    } label: {
                         Image(item)
                             .resizable()
+                            .scaledToFit()
                             .frame(width: 32, height: 32)
                             .padding(8)
                             .background(
-                                RoundedRectangle(cornerRadius: 8)
+                                RoundedRectangle(cornerRadius: 6)
                                     .fill(selectedItem == item ? 
                                          Color.blue.opacity(0.2) : 
                                          PlatformColor.secondaryBackground)
                             )
                             .overlay(
-                                RoundedRectangle(cornerRadius: 8)
+                                RoundedRectangle(cornerRadius: 6)
                                     .stroke(selectedItem == item ? Color.blue : Color.clear, 
-                                           lineWidth: 2)
+                                           lineWidth: 1.5)
                             )
                     }
+                    .buttonStyle(.plain)
                 }
             }
-            .padding(.vertical, 4)
             
             GroupBox {
                 VStack(spacing: 12) {
-                    VStack(alignment: .leading) {
-                        Text("Posición X: \(Int(currentX))")
-                            .font(.subheadline)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Position X")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                         Slider(value: $currentX, in: 16...384)
-                            .accentColor(.blue)
+                            .tint(.blue)
                     }
                     
-                    VStack(alignment: .leading) {
-                        Text("Posición Y: \(Int(currentY))")
-                            .font(.subheadline)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Position Y")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                         Slider(value: $currentY, in: 16...224)
-                            .accentColor(.blue)
+                            .tint(.blue)
                     }
                 }
             }
@@ -63,24 +66,24 @@ struct AddItemView: View {
             Toggle("No Collide", isOn: $nocollide)
                 .toggleStyle(SwitchToggleStyle(tint: .blue))
             
-            HStack {
-                Spacer()
-                Button(action: {
-                    let newItem = PlacedItem(
+            Button {
+                placedItems.append(
+                    PlacedItem(
                         type: selectedItem,
                         x: currentX,
                         y: currentY,
                         itemType: .furniture,
                         nocollide: nocollide
                     )
-                    placedItems.append(newItem)
-                }) {
-                    Label("Add", systemImage: "plus.circle.fill")
-                }
-                .buttonStyle(.borderedProminent)
-                Spacer()
+                )
+            } label: {
+                Label("Add Item", systemImage: "plus.circle.fill")
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
             }
+            .buttonStyle(.borderedProminent)
+            .tint(.blue)
         }
-        .padding()
+        .padding(12)
     }
 } 

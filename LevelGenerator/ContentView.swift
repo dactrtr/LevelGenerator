@@ -23,6 +23,7 @@ struct ContentView: View {
     @State private var selectedEnemy: String = "brocorat"
     
     @State private var placedItems: [PlacedItem] = []
+    @State private var enemySpeed: Double = 1.0
     
     var body: some View {
         #if os(iOS)
@@ -94,19 +95,17 @@ struct ContentView: View {
             .background(PlatformColor.background)
             
             // Right Panel
-            VStack(spacing: 0) {
-                AddEnemyView(selectedEnemy: $selectedEnemy,
-                            enemyX: $enemyX,
-                            enemyY: $enemyY,
-                            placedItems: $placedItems)
-                
-                Divider()
-                    .padding(.vertical, 8)
-                
-                EnemyListView(placedItems: $placedItems)
-            }
+            UnifiedControlView(
+                selectedItem: $selectedItem,
+                selectedEnemy: $selectedEnemy,
+                currentX: $currentX,
+                currentY: $currentY,
+                enemyX: $enemyX,
+                enemyY: $enemyY,
+                enemySpeed: $enemySpeed,
+                placedItems: $placedItems
+            )
             .frame(width: 300)
-            .background(PlatformColor.groupedBackground)
         }
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
