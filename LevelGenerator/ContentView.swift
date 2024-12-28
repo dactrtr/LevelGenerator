@@ -62,7 +62,16 @@ struct ContentView: View {
                     tile: tile,
                     light: light,
                     shadow: shadow,
-                    placedItems: placedItems
+                    placedItems: placedItems,
+                    onReset: {
+                        // Resetear todos los valores
+                        level = 1
+                        floorNumber = 1
+                        tile = 1
+                        light = 0.5
+                        shadow = false
+                        placedItems.removeAll()
+                    }
                 )
                 
                 Spacer()

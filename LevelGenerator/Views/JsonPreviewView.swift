@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct JsonPreviewView: View {
     let level: Int
@@ -7,15 +8,52 @@ struct JsonPreviewView: View {
     let light: Double
     let shadow: Bool
     let placedItems: [PlacedItem]
+    var onReset: () -> Void
+    
+    @State private var showCopiedAlert = false
     
     var body: some View {
-        ScrollView {
-            Text(generateJson())
-                .font(.system(.body, design: .monospaced))
-                .padding()
+        VStack(spacing: 8) {
+            ScrollView {
+                Text(generateJson())
+                    .font(.system(size: 11, design: .monospaced))
+                    .padding()
+            }
+            .frame(height: 200)
+            .background(Color.black.opacity(0.05))
+            
+            // Botones
+            HStack(spacing: 20) {
+                Button(action: {
+                    onReset()
+                }) {
+                    HStack {
+                        Image(systemName: "trash")
+                        Text("Reset Level")
+                    }
+                    .foregroundColor(.red)
+                }
+                
+                Button(action: {
+                    copyToClipboard()
+                }) {
+                    HStack {
+                        Image(systemName: "doc.on.doc")
+                        Text("Copy JSON")
+                    }
+                    .foregroundColor(.blue)
+                }
+            }
+            .padding(.bottom, 8)
         }
-        .frame(height: 200)
-        .background(Color.black.opacity(0.05))
+        .alert("JSON Copied!", isPresented: $showCopiedAlert) {
+            Button("OK", role: .cancel) { }
+        }
+    }
+    
+    private func copyToClipboard() {
+        UIPasteboard.general.string = generateJson()
+        showCopiedAlert = true
     }
     
     private func generateJson() -> String {
