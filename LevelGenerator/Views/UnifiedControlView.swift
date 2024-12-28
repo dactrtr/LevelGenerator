@@ -3,6 +3,7 @@ import SwiftUI
 enum ControlMode: String, CaseIterable {
     case items = "Items"
     case enemies = "Enemies"
+    case triggers = "Triggers"
 }
 
 struct UnifiedControlView: View {
@@ -14,6 +15,8 @@ struct UnifiedControlView: View {
     @Binding var enemyY: Double
     @Binding var enemySpeed: Double
     @Binding var placedItems: [PlacedItem]
+    @Binding var triggerX: Double
+    @Binding var triggerY: Double
     @State private var selectedMode: ControlMode = .items
     
     var body: some View {
@@ -27,7 +30,8 @@ struct UnifiedControlView: View {
             .pickerStyle(.segmented)
             
             // Content based on selected mode
-            if selectedMode == .items {
+            switch selectedMode {
+            case .items:
                 VStack(spacing: 0) {
                     AddItemView(
                         selectedItem: $selectedItem,
@@ -41,7 +45,7 @@ struct UnifiedControlView: View {
                     
                     ItemListView(placedItems: $placedItems)
                 }
-            } else {
+            case .enemies:
                 VStack(spacing: 0) {
                     AddEnemyView(
                         selectedEnemy: $selectedEnemy,
@@ -55,6 +59,19 @@ struct UnifiedControlView: View {
                         .padding(.vertical, 8)
                     
                     EnemyListView(placedItems: $placedItems)
+                }
+            case .triggers:
+                VStack(spacing: 0) {
+                    AddTriggerView(
+                        currentX: $triggerX,
+                        currentY: $triggerY,
+                        placedItems: $placedItems
+                    )
+                    
+                    Divider()
+                        .padding(.vertical, 8)
+                    
+                    TriggerListView(placedItems: $placedItems)
                 }
             }
         }

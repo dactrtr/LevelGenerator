@@ -48,6 +48,18 @@ struct MapView: View {
                 .frame(width: selectedEnemy == "frogcolli" ? 40 : 32,
                        height: selectedEnemy == "frogcolli" ? 40 : 32)
                 .position(x: enemyX, y: enemyY)
+            
+            ForEach(placedItems.filter { $0.itemType == .trigger }) { trigger in
+                Rectangle()
+                    .fill(Color.purple.opacity(0.2))
+                    .frame(width: trigger.width ?? 60, height: trigger.height ?? 30)
+                    .position(x: trigger.x, y: trigger.y)
+                    .overlay(
+                        Rectangle()
+                            .stroke(Color.purple, lineWidth: 1)
+                            .frame(width: trigger.width ?? 60, height: trigger.height ?? 30)
+                    )
+            }
         }
         .frame(width: 400, height: 240)
         .background(Color.white)

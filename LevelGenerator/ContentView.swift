@@ -21,9 +21,13 @@ struct ContentView: View {
     @State private var enemyX: Double = 200
     @State private var enemyY: Double = 120
     @State private var selectedEnemy: String = "brocorat"
+    @State private var enemySpeed: Double = 1.0
+    
+    // Nuevas variables de estado para triggers
+    @State private var triggerX: Double = 200
+    @State private var triggerY: Double = 120
     
     @State private var placedItems: [PlacedItem] = []
-    @State private var enemySpeed: Double = 1.0
     
     var body: some View {
         #if os(iOS)
@@ -103,7 +107,9 @@ struct ContentView: View {
                 enemyX: $enemyX,
                 enemyY: $enemyY,
                 enemySpeed: $enemySpeed,
-                placedItems: $placedItems
+                placedItems: $placedItems,
+                triggerX: $triggerX,
+                triggerY: $triggerY
             )
             .frame(width: 300)
         }

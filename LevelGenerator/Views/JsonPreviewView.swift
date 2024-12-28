@@ -12,31 +12,28 @@ struct JsonPreviewView: View {
     let light: Double
     let shadow: Bool
     let placedItems: [PlacedItem]
-    var onReset: () -> Void
-    
+    let onReset: () -> Void
     @State private var showCopiedAlert = false
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(alignment: .leading) {
             ScrollView {
                 Text(generateJson())
-                    .font(.system(size: 11, design: .monospaced))
+                    .font(.system(.body, design: .monospaced))
+                    .textSelection(.enabled)
                     .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .background(Color.black.opacity(0.05))
             
-            // Botones
-            HStack(spacing: 20) {
-                Button(action: {
-                    onReset()
-                }) {
+            HStack {
+                Button(action: onReset) {
                     HStack {
-                        Image(systemName: "trash")
-                        Text("Reset Level")
+                        Image(systemName: "arrow.counterclockwise")
+                        Text("Reset")
                     }
                     .foregroundColor(.red)
                 }
+                
+                Spacer()
                 
                 Button(action: {
                     copyToClipboard()
@@ -55,18 +52,47 @@ struct JsonPreviewView: View {
         }
     }
     
-    private func copyToClipboard() {
-        #if os(iOS)
-        UIPasteboard.general.string = generateJson()
-        #else
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(generateJson(), forType: .string)
-        #endif
-        showCopiedAlert = true
-    }
-    
     private func generateJson() -> String {
-        """
+        let furnitureItems = placedItems.filter { $0.itemType == .furniture }
+        let enemyItems = placedItems.filter { $0.itemType == .enemy }
+        let triggerItems = placedItems.filter { $0.itemType == .trigger }
+        
+        let furnitureJson = furnitureItems.map { item in
+            """
+                    {
+                        type = "\(item.type)",
+                        x = \(Int(item.x)),
+                        y = \(Int(item.y)),
+                        nocollide = \(item.nocollide)
+                    }
+            """
+        }.joined(separator: ",\n")
+        
+        let enemiesJson = enemyItems.map { item in
+            """
+                    {
+                        type = "\(item.type)",
+                        x = \(Int(item.x)),
+                        y = \(Int(item.y)),
+                        speed = \(item.speed ?? 1.0)
+                    }
+            """
+        }.joined(separator: ",\n")
+        
+        let triggersJson = triggerItems.map { item in
+            """
+                    {
+                        usedTrigger = false,
+                        x = \(Int(item.x)),
+                        y = \(Int(item.y)),
+                        width = \(Int(item.width ?? 60)),
+                        height = \(Int(item.height ?? 30)),
+                        script = \(item.script ?? 1)
+                    }
+            """
+        }.joined(separator: ",\n")
+        
+        return """
         --\(floorNumber)
         {
             floor = {
@@ -77,63 +103,27 @@ struct JsonPreviewView: View {
                 light = \(String(format: "%.1f", light)),
                 shadow = \(shadow),
                 comic = {},
-                triggers = {},
-                enemies = {
-        \(generateEnemiesSection())
+                triggers = {
+        \(triggersJson)
                 },
-                doors = {},
-                items = {},
-                props = {
-        \(generatePropsSection())
+                enemies = {
+        \(enemiesJson)
+                },
+                items = {
+        \(furnitureJson)
                 }
             }
         }
         """
     }
     
-    private func generateEnemiesSection() -> String {
-        let enemies = placedItems.filter { $0.itemType == .enemy }
-        if enemies.isEmpty {
-            return ""
-        }
-        
-        return enemies.map { enemy in
-            """
-                    {
-                        name = "\(enemy.type)",
-                        x = \(Int(enemy.x)),
-                        y = \(Int(enemy.y)),
-                        speed = \(String(format: "%.1f", enemy.speed ?? 1.0))
-                    }
-            """
-        }.joined(separator: ",\n")
-    }
-    
-    private func generatePropsSection() -> String {
-        let props = placedItems.filter { $0.itemType == .furniture }
-        if props.isEmpty {
-            return ""
-        }
-        
-        return props.map { prop in
-            if prop.nocollide {
-                """
-                        {
-                            type = '\(prop.type)',
-                            x = \(Int(prop.x)),
-                            y = \(Int(prop.y)),
-                            nocollide = true
-                        }
-                """
-            } else {
-                """
-                        {
-                            type = '\(prop.type)',
-                            x = \(Int(prop.x)),
-                            y = \(Int(prop.y))
-                        }
-                """
-            }
-        }.joined(separator: ",\n")
+    private func copyToClipboard() {
+        #if os(iOS)
+        UIPasteboard.general.string = generateJson()
+        #else
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(generateJson(), forType: .string)
+        #endif
+        showCopiedAlert = true
     }
 } 
