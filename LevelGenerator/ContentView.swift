@@ -6,61 +6,87 @@
 //
 
 import SwiftUI
-import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
-
+    @State private var level: Int = 1
+    @State private var floorNumber: Int = 1
+    @State private var tile: Int = 1
+    @State private var light: Double = 0.5
+    @State private var shadow: Bool = false
+    
+    @State private var currentX: Double = 200
+    @State private var currentY: Double = 120
+    @State private var selectedItem: String = "chair"
+    
+    @State private var enemyX: Double = 200
+    @State private var enemyY: Double = 120
+    @State private var selectedEnemy: String = "brocorat"
+    
+    @State private var placedItems: [PlacedItem] = []
+    
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
-                }
-                .onDelete(perform: deleteItems)
+        HStack(spacing: 0) {
+            // Left Panel
+            VStack {
+                AddItemView(selectedItem: $selectedItem,
+                           currentX: $currentX,
+                           currentY: $currentY,
+                           placedItems: $placedItems)
+                
+                Divider()
+                
+                ItemListView(placedItems: $placedItems)
             }
-#if os(macOS)
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-#endif
-            .toolbar {
-#if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-#endif
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
+            .frame(width: 300)
+            .background(Color.gray.opacity(0.1))
+            
+            // Center Panel
+            VStack(alignment: .leading, spacing: 20) {
+                RoomInfoView(level: $level,
+                           floorNumber: $floorNumber,
+                           tile: $tile,
+                           light: $light,
+                           shadow: $shadow)
+                
+                MapView(placedItems: placedItems,
+                       selectedItem: selectedItem,
+                       currentX: currentX,
+                       currentY: currentY,
+                       selectedEnemy: selectedEnemy,
+                       enemyX: enemyX,
+                       enemyY: enemyY)
+                
+                Spacer()
             }
-        } detail: {
-            Text("Select an item")
+            .padding()
+            .frame(width: 400)
+            
+            // Right Panel
+            VStack {
+                AddEnemyView(selectedEnemy: $selectedEnemy,
+                            enemyX: $enemyX,
+                            enemyY: $enemyY,
+                            placedItems: $placedItems)
+                
+                Divider()
+                
+                EnemyListView(placedItems: $placedItems)
+            }
+            .frame(width: 300)
+            .background(Color.gray.opacity(0.1))
         }
     }
+}
 
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
-        }
+// Añadir esta estructura para manejar las preferencias del rectángulo
+struct RectPreferenceKey: PreferenceKey {
+    static var defaultValue: CGRect = .zero
+    
+    static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
+        value = nextValue()
     }
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
 }
