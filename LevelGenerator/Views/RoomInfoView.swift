@@ -22,7 +22,7 @@ struct RoomInfoView: View {
                         GroupBox {
                             VStack(alignment: .leading, spacing: 12) {
                                 // Level, Floor, Tile y Shadow en una línea
-                                HStack(spacing: 16) {
+                                VStack(spacing: 16) {
                                     // Level
                                     HStack(spacing: 4) {
                                         Text("Level")

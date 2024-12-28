@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var selectedSection: AppSection = .levelEditor
     @State private var level: Int = 1
     @State private var floorNumber: Int = 1
     @State private var tile: Int = 1
@@ -41,78 +42,114 @@ struct ContentView: View {
     @State private var doorLeft: Bool = false
     
     var body: some View {
-        #if os(iOS)
-        content
-        #else
-        content
-        #endif
+        VStack(spacing: 0) {
+            // Contenido principal
+            switch selectedSection {
+            case .levelEditor:
+                content
+            case .script:
+                ScriptView()
+            }
+            
+            // Bottom Bar
+            HStack {
+                ForEach(AppSection.allCases, id: \.self) { section in
+                    Button(action: {
+                        selectedSection = section
+                    }) {
+                        VStack(spacing: 4) {
+                            Image(systemName: section == .levelEditor ? "square.grid.2x2" : "doc.text")
+                                .font(.system(size: 20))
+                            Text(section.rawValue)
+                                .font(.caption)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(selectedSection == section ? .blue : .gray)
+                }
+            }
+            .padding(.vertical, 8)
+            .background(PlatformColor.secondaryBackground)
+        }
     }
     
     var content: some View {
         HStack(spacing: 0) {
-         
-            // Center Panel
-            VStack(alignment: .center, spacing: 16) {
-                RoomInfoView(
-                    level: $level,
-                    floorNumber: $floorNumber,
-                    tile: $tile,
-                    light: $light,
-                    shadow: $shadow,
-                    doorTop: $doorTop,
-                    doorRight: $doorRight,
-                    doorDown: $doorDown,
-                    doorLeft: $doorLeft
-                )
+            
+                // Left Panel - JSON Preview
+                
+                // Center Panel - Map and Room Info side by side
+                HStack(alignment: .top, spacing: 16) {
+                    VStack{
+                        MapView(
+                            placedItems: placedItems,
+                            selectedItem: selectedItem,
+                            currentX: currentX,
+                            currentY: currentY,
+                            selectedEnemy: selectedEnemy,
+                            enemyX: enemyX,
+                            enemyY: enemyY,
+                            showTriggerPreview: selectedMode == .triggers,
+                            triggerX: triggerX,
+                            triggerY: triggerY,
+                            triggerWidth: triggerWidth,
+                            triggerHeight: triggerHeight
+                        )
+                        .overlay(
+                            Rectangle()
+                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                        )
+                        
+                        JsonPreviewView(
+                            level: level,
+                            floorNumber: floorNumber,
+                            tile: tile,
+                            light: light,
+                            shadow: shadow,
+                            placedItems: placedItems,
+                            doorTop: doorTop,
+                            doorRight: doorRight,
+                            doorDown: doorDown,
+                            doorLeft: doorLeft,
+                            onReset: {
+                                level = 1
+                                floorNumber = 1
+                                tile = 1
+                                light = 0.5
+                                shadow = false
+                                placedItems.removeAll()
+                            }
+                        )
+                        
+                        .frame(maxHeight: .infinity)
+                        .padding()
+                        .background(PlatformColor.background)
+                    }
+                    
+                    
+                    RoomInfoView(
+                        level: $level,
+                        floorNumber: $floorNumber,
+                        tile: $tile,
+                        light: $light,
+                        shadow: $shadow,
+                        doorTop: $doorTop,
+                        doorRight: $doorRight,
+                        doorDown: $doorDown,
+                        doorLeft: $doorLeft
+                    )
                     .background(PlatformColor.secondaryBackground)
                     .cornerRadius(10)
-                
-                MapView(
-                    placedItems: placedItems,
-                    selectedItem: selectedItem,
-                    currentX: currentX,
-                    currentY: currentY,
-                    selectedEnemy: selectedEnemy,
-                    enemyX: enemyX,
-                    enemyY: enemyY,
-                    showTriggerPreview: selectedMode == .triggers,
-                    triggerX: triggerX,
-                    triggerY: triggerY,
-                    triggerWidth: triggerWidth,
-                    triggerHeight: triggerHeight
-                )
-                    .overlay(
-                        Rectangle()
-                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-                    )
-                
-                JsonPreviewView(
-                    level: level,
-                    floorNumber: floorNumber,
-                    tile: tile,
-                    light: light,
-                    shadow: shadow,
-                    placedItems: placedItems,
-                    doorTop: doorTop,
-                    doorRight: doorRight,
-                    doorDown: doorDown,
-                    doorLeft: doorLeft,
-                    onReset: {
-                        level = 1
-                        floorNumber = 1
-                        tile = 1
-                        light = 0.5
-                        shadow = false
-                        placedItems.removeAll()
-                    }
-                )
-                .cornerRadius(10)
-                .frame(maxHeight: .infinity)
-            }
-            .padding()
-            .background(PlatformColor.background)
+                    .frame(width: 300)
+                }
+                .padding()
+                .background(PlatformColor.background)
             
-            // Right Panel
+          
+            
+            
+            // Right Panel - Controls
             UnifiedControlView(
                 selectedItem: $selectedItem,
                 selectedEnemy: $selectedEnemy,
