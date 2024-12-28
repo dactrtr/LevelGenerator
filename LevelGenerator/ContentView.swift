@@ -26,9 +26,7 @@ struct ContentView: View {
     
     var body: some View {
         #if os(iOS)
-        NavigationView {
-            content
-        }
+        content
         #else
         content
         #endif

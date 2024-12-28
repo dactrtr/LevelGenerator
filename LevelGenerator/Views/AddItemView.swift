@@ -7,7 +7,7 @@ struct AddItemView: View {
     @Binding var placedItems: [PlacedItem]
     @State private var nocollide: Bool = false
     
-    let availableItems = ["chair", "box", "fellchair", "table"]
+    let availableItems = ["chair", "fellchair", "box", "trash", "toxic", "table", "blood", "blood2", "deadrat", "xtree-1", "xtree-2", "xtree-3", "xtree-4"]
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
