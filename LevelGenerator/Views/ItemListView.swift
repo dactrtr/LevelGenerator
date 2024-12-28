@@ -5,7 +5,7 @@ struct ItemListView: View {
     
     var body: some View {
         VStack {
-            Text("Muebles colocados")
+            Text("Placed Items")
                 .font(.headline)
                 .padding(.top)
             
@@ -33,35 +33,46 @@ struct ItemRow: View {
     let onDelete: () -> Void
     
     var body: some View {
-        HStack {
-            // Círculo con número
+        HStack(spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(Color.green)
-                    .frame(width: 18, height: 18)
+                    .fill(Color.blue.opacity(0.2))
+                    .frame(width: 24, height: 24)
                 Text("\(index + 1)")
-                    .foregroundColor(.white)
-                    .font(.system(size: 11, weight: .bold))
+                    .foregroundColor(.blue)
+                    .font(.system(size: 12, weight: .bold))
             }
             
-            Text(item.type)
-            Text("X: \(Int(item.x)), Y: \(Int(item.y))")
+            VStack(alignment: .leading, spacing: 4) {
+                Text(item.type.capitalized)
+                    .font(.system(.body, design: .rounded))
+                Text("(\(Int(item.x)), \(Int(item.y)))")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
             if item.nocollide {
                 Text("NC")
+                    .font(.caption2)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.blue.opacity(0.1))
                     .foregroundColor(.blue)
-                    .font(.caption)
-                    .padding(.horizontal, 4)
-                    .background(
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(Color.blue, lineWidth: 1)
-                    )
+                    .cornerRadius(4)
             }
+            
             Spacer()
+            
             Button(action: onDelete) {
                 Image(systemName: "trash")
-                    .foregroundColor(.blue)
+                    .foregroundColor(.red)
             }
+            .buttonStyle(.borderless)
         }
         .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
+        .cornerRadius(8)
+        .padding(.horizontal, 8)
     }
 } 

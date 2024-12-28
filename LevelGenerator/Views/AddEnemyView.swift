@@ -10,19 +10,36 @@ struct AddEnemyView: View {
     let availableEnemies = ["brocorat", "frogcolli"]
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("Control de enemigos")
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Enemy Control")
                 .font(.headline)
                 .padding(.top)
             
-            Picker("Tipo", selection: $selectedEnemy) {
+            HStack(spacing: 12) {
                 ForEach(availableEnemies, id: \.self) { enemy in
-                    Text(enemy.capitalized)
-                        .tag(enemy)
+                    Button(action: {
+                        selectedEnemy = enemy
+                    }) {
+                        Image(enemy)
+                            .resizable()
+                            .frame(width: enemy == "frogcolli" ? 40 : 32,
+                                   height: enemy == "frogcolli" ? 40 : 32)
+                            .padding(8)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(selectedEnemy == enemy ? 
+                                         Color.red.opacity(0.2) : 
+                                         Color(uiColor: .secondarySystemGroupedBackground))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(selectedEnemy == enemy ? Color.red : Color.clear, 
+                                           lineWidth: 2)
+                            )
+                    }
                 }
             }
-            .pickerStyle(.segmented)
-            .padding(.bottom, 10)
+            .padding(.vertical, 4)
             
             HStack(spacing: 20) {
                 VStack(alignment: .leading) {
@@ -42,11 +59,7 @@ struct AddEnemyView: View {
             }
             
             HStack {
-                Image(selectedEnemy)
-                    .resizable()
-                    .frame(width: selectedEnemy == "frogcolli" ? 40 : 32,
-                           height: selectedEnemy == "frogcolli" ? 40 : 32)
-                
+                Spacer()
                 Button(action: {
                     let newItem = PlacedItem(
                         type: selectedEnemy,
@@ -57,10 +70,11 @@ struct AddEnemyView: View {
                     )
                     placedItems.append(newItem)
                 }) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title)
-                        .foregroundColor(.red)
+                    Label("Add", systemImage: "plus.circle.fill")
                 }
+                .buttonStyle(.borderedProminent)
+                .tint(.red)
+                Spacer()
             }
         }
         .padding()

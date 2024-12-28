@@ -18,8 +18,8 @@ struct JsonPreviewView: View {
                 Text(generateJson())
                     .font(.system(size: 11, design: .monospaced))
                     .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(height: 200)
             .background(Color.black.opacity(0.05))
             
             // Botones
@@ -58,6 +58,7 @@ struct JsonPreviewView: View {
     
     private func generateJson() -> String {
         """
+        --\(floorNumber)
         {
             floor = {
                 level = \(level),
@@ -66,11 +67,7 @@ struct JsonPreviewView: View {
                 tile = \(tile),
                 light = \(String(format: "%.1f", light)),
                 shadow = \(shadow),
-                comic = {
-                    wasPlayed = false,
-                    name = "intro-comic",
-                    play = "enter"
-                },
+                comic = {},
                 triggers = {},
                 enemies = {
         \(generateEnemiesSection())

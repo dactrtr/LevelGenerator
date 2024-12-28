@@ -10,40 +10,59 @@ struct AddItemView: View {
     let availableItems = ["chair", "box", "fellchair", "table"]
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("Control de muebles")
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Item Control")
                 .font(.headline)
                 .padding(.top)
             
-            Picker("Tipo", selection: $selectedItem) {
+            HStack(spacing: 12) {
                 ForEach(availableItems, id: \.self) { item in
-                    Text(item.capitalized)
-                        .tag(item)
+                    Button(action: {
+                        selectedItem = item
+                    }) {
+                        Image(item)
+                            .resizable()
+                            .frame(width: 32, height: 32)
+                            .padding(8)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(selectedItem == item ? 
+                                         Color.blue.opacity(0.2) : 
+                                         Color(uiColor: .secondarySystemGroupedBackground))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(selectedItem == item ? Color.blue : Color.clear, 
+                                           lineWidth: 2)
+                            )
+                    }
                 }
             }
-            .pickerStyle(.segmented)
-            .padding(.bottom, 10)
+            .padding(.vertical, 4)
             
-            HStack(spacing: 20) {
-                VStack(alignment: .leading) {
-                    Text("X: \(Int(currentX))")
-                    Slider(value: $currentX, in: 16...384)
-                }
-                
-                VStack(alignment: .leading) {
-                    Text("Y: \(Int(currentY))")
-                    Slider(value: $currentY, in: 16...224)
+            GroupBox {
+                VStack(spacing: 12) {
+                    VStack(alignment: .leading) {
+                        Text("Posición X: \(Int(currentX))")
+                            .font(.subheadline)
+                        Slider(value: $currentX, in: 16...384)
+                            .accentColor(.blue)
+                    }
+                    
+                    VStack(alignment: .leading) {
+                        Text("Posición Y: \(Int(currentY))")
+                            .font(.subheadline)
+                        Slider(value: $currentY, in: 16...224)
+                            .accentColor(.blue)
+                    }
                 }
             }
             
             Toggle("No Collide", isOn: $nocollide)
-                .padding(.vertical, 5)
+                .toggleStyle(SwitchToggleStyle(tint: .blue))
             
             HStack {
-                Image(selectedItem)
-                    .resizable()
-                    .frame(width: 32, height: 32)
-                
+                Spacer()
                 Button(action: {
                     let newItem = PlacedItem(
                         type: selectedItem,
@@ -54,10 +73,10 @@ struct AddItemView: View {
                     )
                     placedItems.append(newItem)
                 }) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title)
-                        .foregroundColor(.blue)
+                    Label("Add", systemImage: "plus.circle.fill")
                 }
+                .buttonStyle(.borderedProminent)
+                Spacer()
             }
         }
         .padding()

@@ -27,26 +27,29 @@ struct ContentView: View {
     var body: some View {
         HStack(spacing: 0) {
             // Left Panel
-            VStack {
+            VStack(spacing: 0) {
                 AddItemView(selectedItem: $selectedItem,
                            currentX: $currentX,
                            currentY: $currentY,
                            placedItems: $placedItems)
                 
                 Divider()
+                    .padding(.vertical, 8)
                 
                 ItemListView(placedItems: $placedItems)
             }
             .frame(width: 300)
-            .background(Color.gray.opacity(0.1))
+            .background(Color(uiColor: .systemGroupedBackground))
             
             // Center Panel
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .center, spacing: 16) {
                 RoomInfoView(level: $level,
                            floorNumber: $floorNumber,
                            tile: $tile,
                            light: $light,
                            shadow: $shadow)
+                    .background(Color(uiColor: .secondarySystemGroupedBackground))
+                    .cornerRadius(10)
                 
                 MapView(placedItems: placedItems,
                        selectedItem: selectedItem,
@@ -55,6 +58,10 @@ struct ContentView: View {
                        selectedEnemy: selectedEnemy,
                        enemyX: enemyX,
                        enemyY: enemyY)
+                    .overlay(
+                        Rectangle()
+                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                    )
                 
                 JsonPreviewView(
                     level: level,
@@ -64,7 +71,6 @@ struct ContentView: View {
                     shadow: shadow,
                     placedItems: placedItems,
                     onReset: {
-                        // Resetear todos los valores
                         level = 1
                         floorNumber = 1
                         tile = 1
@@ -73,25 +79,27 @@ struct ContentView: View {
                         placedItems.removeAll()
                     }
                 )
-                
-                Spacer()
+                .cornerRadius(10)
+                .frame(maxHeight: .infinity)
             }
             .padding()
-            .frame(width: 400)
+            
+            .background(Color(uiColor: .systemBackground))
             
             // Right Panel
-            VStack {
+            VStack(spacing: 0) {
                 AddEnemyView(selectedEnemy: $selectedEnemy,
                             enemyX: $enemyX,
                             enemyY: $enemyY,
                             placedItems: $placedItems)
                 
                 Divider()
+                    .padding(.vertical, 8)
                 
                 EnemyListView(placedItems: $placedItems)
             }
             .frame(width: 300)
-            .background(Color.gray.opacity(0.1))
+            .background(Color(uiColor: .systemGroupedBackground))
         }
     }
 }

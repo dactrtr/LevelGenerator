@@ -9,7 +9,7 @@ struct RoomInfoView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Información del cuarto")
+            Text("Room Information")
                 .font(.headline)
             
             HStack {
