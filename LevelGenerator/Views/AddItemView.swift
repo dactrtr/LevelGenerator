@@ -5,6 +5,7 @@ struct AddItemView: View {
     @Binding var currentX: Double
     @Binding var currentY: Double
     @Binding var placedItems: [PlacedItem]
+    @State private var nocollide: Bool = false
     
     let availableItems = ["chair", "box", "fellchair", "table"]
     
@@ -35,13 +36,22 @@ struct AddItemView: View {
                 }
             }
             
+            Toggle("No Collide", isOn: $nocollide)
+                .padding(.vertical, 5)
+            
             HStack {
                 Image(selectedItem)
                     .resizable()
                     .frame(width: 32, height: 32)
                 
                 Button(action: {
-                    let newItem = PlacedItem(type: selectedItem, x: currentX, y: currentY, itemType: .furniture)
+                    let newItem = PlacedItem(
+                        type: selectedItem,
+                        x: currentX,
+                        y: currentY,
+                        itemType: .furniture,
+                        nocollide: nocollide
+                    )
                     placedItems.append(newItem)
                 }) {
                     Image(systemName: "plus.circle.fill")

@@ -19,11 +19,23 @@ struct MapView: View {
                 .stroke(Color.gray, lineWidth: 2)
                 .frame(width: 400, height: 240)
             
-            ForEach(placedItems) { item in
-                Image(item.type)
-                    .resizable()
-                    .frame(width: item.size, height: item.size)
-                    .position(x: item.x, y: item.y)
+            ForEach(Array(placedItems.enumerated()), id: \.element.id) { index, item in
+                ZStack {
+                    Image(item.type)
+                        .resizable()
+                        .frame(width: item.size, height: item.size)
+                    
+                    ZStack {
+                        Circle()
+                            .fill(item.itemType == .furniture ? Color.green : Color.red)
+                            .frame(width: 16, height: 16)
+                        Text("\(index + 1)")
+                            .foregroundColor(.white)
+                            .font(.system(size: 10, weight: .bold))
+                    }
+                    .offset(x: item.size/2 - 4, y: -item.size/2 + 4)
+                }
+                .position(x: item.x, y: item.y)
             }
             
             Image(selectedItem)
