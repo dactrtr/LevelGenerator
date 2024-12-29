@@ -11,7 +11,7 @@ struct AddEnemyView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Enemy Grid
+            // Enemy Selection Grid
             LazyVGrid(columns: [
                 GridItem(.adaptive(minimum: 48, maximum: 48), spacing: 8)
             ], spacing: 8) {
@@ -33,7 +33,7 @@ struct AddEnemyView: View {
             .background(Color.gray.opacity(0.1))
             .cornerRadius(8)
             
-            // Speed control
+            // Speed Control
             VStack(alignment: .leading, spacing: 4) {
                 Text("Speed")
                     .font(.footnote)
@@ -42,6 +42,7 @@ struct AddEnemyView: View {
                     .tint(.red)
             }
             
+            // Add Button
             Button {
                 placedItems.append(
                     PlacedItem(
@@ -62,7 +63,7 @@ struct AddEnemyView: View {
             .tint(.red)
             .controlSize(.small)
             
-            // Control Grid al final
+            // Position Control Grid
             ControlGrid(x: $enemyX, y: $enemyY, width: 400, height: 240)
                 .frame(height: 120)
                 .cornerRadius(8)

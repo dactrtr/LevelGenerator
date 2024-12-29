@@ -10,9 +10,10 @@ struct AddTriggerView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Width & Height controls
+            // Size Controls
             GroupBox {
                 VStack(spacing: 12) {
+                    // Width Control
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Width: \(Int(previewWidth))")
                             .font(.footnote)
@@ -21,6 +22,7 @@ struct AddTriggerView: View {
                             .tint(.purple)
                     }
                     
+                    // Height Control
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Height: \(Int(previewHeight))")
                             .font(.footnote)
@@ -31,7 +33,7 @@ struct AddTriggerView: View {
                 }
             }
             
-            // Script number
+            // Script Number Control
             VStack(alignment: .leading, spacing: 4) {
                 Text("Script")
                     .font(.footnote)
@@ -44,6 +46,7 @@ struct AddTriggerView: View {
                 }
             }
             
+            // Add Button
             Button {
                 placedItems.append(
                     PlacedItem(
@@ -66,7 +69,7 @@ struct AddTriggerView: View {
             .tint(.purple)
             .controlSize(.small)
             
-            // Control Grid al final
+            // Position Control Grid
             ControlGrid(x: $currentX, y: $currentY, width: 400, height: 240)
                 .frame(height: 120)
                 .cornerRadius(8)

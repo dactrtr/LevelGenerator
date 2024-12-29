@@ -33,11 +33,13 @@ struct AddItemView: View {
             .background(Color.gray.opacity(0.1))
             .cornerRadius(8)
             
+            // No Collide Toggle
             Toggle(isOn: $nocollide) {
                 Text("No Collide")
                     .font(.footnote)
             }
             
+            // Add Button
             Button {
                 placedItems.append(
                     PlacedItem(
@@ -58,7 +60,7 @@ struct AddItemView: View {
             .tint(.blue)
             .controlSize(.small)
             
-            // Control Grid al final
+            // Position Control Grid
             ControlGrid(x: $currentX, y: $currentY, width: 400, height: 240)
                 .frame(height: 120)
                 .cornerRadius(8)
