@@ -4,29 +4,37 @@ struct ScriptView: View {
     @State private var selectedImage: String = "player"
     @State private var currentDialog: String = ""
     @State private var currentName: String = ""
-    @State private var currentScriptKey: String = ""
     @State private var dialogs: [(image: String, text: String, key: String)] = []
     
     let availableImages = ["player", "playerWorry", "playerSurprise", "radio", "radiopocket", "radioring", "notes"]
     
+    private func generateScriptKey() -> String {
+        // Convertir el nombre a formato válido (reemplazar espacios con guiones)
+        let formattedName = currentName.lowercased().replacingOccurrences(of: " ", with: "-")
+        // Contar cuántos diálogos hay para este nombre
+        let dialogCount = dialogs.filter { $0.key.starts(with: formattedName) }.count + 1
+        // Generar el número con formato de dos dígitos
+        let numberString = String(format: "%02d", dialogCount)
+        return "\(formattedName)-\(numberString)"
+    }
+    
     var generatedLuaScript: String {
         """
         {
-            -- trigger mess
+            name = "\(currentName)",
+            -- trigger \(currentName)
             dialog = {
-                name = "\(currentName)",
-                script = {
-                    \(dialogs.map { dialog in
-                        """
-                        {
-                            video = '\(dialog.image)',
-                            text = Graphics.getLocalizedText("\(dialog.key)", "en"),
-                        }
-                        """
-                    }.joined(separator: ",\n                    "))
-                }
+                \(dialogs.map { dialog in
+                    """
+                    {
+                        video = '\(dialog.image)',
+                        text = Graphics.getLocalizedText("\(dialog.key)", "en"),
+                    }
+                    """
+                }.joined(separator: ",\n                "))
+                
             }
-        }
+        },
         """
     }
     
@@ -102,12 +110,6 @@ struct ScriptView: View {
                         .textFieldStyle(.roundedBorder)
                 }
                 
-                // Script Key Input
-                GroupBox("Script Key") {
-                    TextField("Enter script key", text: $currentScriptKey)
-                        .textFieldStyle(.roundedBorder)
-                }
-                
                 // Dialog Input
                 GroupBox("Dialog Text") {
                     TextEditor(text: Binding(
@@ -135,21 +137,20 @@ struct ScriptView: View {
                 
                 // Add Button
                 Button {
-                    if !currentDialog.isEmpty && !currentName.isEmpty && !currentScriptKey.isEmpty {
+                    if !currentDialog.isEmpty && !currentName.isEmpty {
                         dialogs.append((
                             image: selectedImage,
                             text: currentDialog,
-                            key: currentScriptKey
+                            key: generateScriptKey()
                         ))
                         currentDialog = ""
-                        currentScriptKey = ""
                     }
                 } label: {
                     Text("Add Dialog")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(currentDialog.isEmpty || currentName.isEmpty || currentScriptKey.isEmpty)
+                .disabled(currentDialog.isEmpty || currentName.isEmpty)
                 
                 Spacer()
             }

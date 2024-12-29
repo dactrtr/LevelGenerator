@@ -96,7 +96,7 @@ struct JsonPreviewView: View {
                         y = \(Int(item.y)),
                         width = \(Int(item.width ?? 60)),
                         height = \(Int(item.height ?? 30)),
-                        script = \(item.script ?? 1)
+                        script = "\(item.script ?? "")"
                     }
             """
         }.joined(separator: ",\n")

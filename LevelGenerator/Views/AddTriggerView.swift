@@ -6,7 +6,7 @@ struct AddTriggerView: View {
     @Binding var placedItems: [PlacedItem]
     @Binding var previewWidth: Double
     @Binding var previewHeight: Double
-    @State private var script: Int = 1
+    @State private var scriptName: String = ""
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -33,17 +33,10 @@ struct AddTriggerView: View {
                 }
             }
             
-            // Script Number Control
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Script")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                Stepper(value: $script, in: 1...100) {
-                    Text("\(script)")
-                        .monospacedDigit()
-                        .frame(width: 30, alignment: .leading)
-                        .foregroundStyle(.primary)
-                }
+            // Script Name Input
+            GroupBox("Script Name") {
+                TextField("Enter script name", text: $scriptName)
+                    .textFieldStyle(.roundedBorder)
             }
             
             // Add Button
@@ -56,9 +49,10 @@ struct AddTriggerView: View {
                         itemType: .trigger,
                         width: previewWidth,
                         height: previewHeight,
-                        script: script
+                        script: scriptName.isEmpty ? nil : scriptName
                     )
                 )
+                scriptName = ""
             } label: {
                 Label("Add", systemImage: "plus")
                     .font(.footnote)
@@ -68,6 +62,7 @@ struct AddTriggerView: View {
             .buttonStyle(.borderedProminent)
             .tint(.purple)
             .controlSize(.small)
+            .disabled(scriptName.isEmpty)
             
             // Position Control Grid
             ControlGrid(x: $currentX, y: $currentY, width: 400, height: 240)
