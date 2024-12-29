@@ -80,7 +80,7 @@ struct JsonPreviewView: View {
         let enemiesJson = enemyItems.map { item in
             """
                     {
-                        type = "\(item.type)",
+                        name = "\(item.type)",
                         x = \(Int(item.x)),
                         y = \(Int(item.y)),
                         speed = \(item.speed ?? 1.0)
