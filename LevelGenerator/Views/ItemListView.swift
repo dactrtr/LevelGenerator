@@ -21,7 +21,7 @@ struct ItemListView: View {
                     }
                 }
             }
-            .frame(maxHeight: .infinity)
+//            .frame(maxHeight: .infinity)
             .background(Color.gray.opacity(0.1))
         }
     }

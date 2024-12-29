@@ -22,7 +22,7 @@ struct UnifiedControlView: View {
     @Binding var triggerHeight: Double
     
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 0) {
             // Segment Control
             Picker("Mode", selection: $selectedMode) {
                 ForEach(ControlMode.allCases, id: \.self) { mode in
@@ -30,6 +30,7 @@ struct UnifiedControlView: View {
                 }
             }
             .pickerStyle(.segmented)
+            .padding(.horizontal,8)
             
             // Content based on selected mode
             switch selectedMode {
@@ -43,9 +44,9 @@ struct UnifiedControlView: View {
                     )
                     
                     Divider()
-                        .padding(.vertical, 8)
                     
                     ItemListView(placedItems: $placedItems)
+                   
                 }
             case .enemies:
                 VStack(spacing: 0) {
@@ -77,9 +78,11 @@ struct UnifiedControlView: View {
                     
                     TriggerListView(placedItems: $placedItems)
                 }
+                
             }
+//            Spacer()
         }
-        .padding(.top)
+        
         .background(PlatformColor.groupedBackground)
     }
 } 

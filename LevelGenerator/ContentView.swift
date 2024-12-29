@@ -88,10 +88,8 @@ struct ContentView: View {
     var content: some View {
         HStack(spacing: 0) {
             
-                // Left Panel - JSON Preview
-                
                 // Center Panel - Map and Room Info side by side
-                HStack(alignment: .top, spacing: 16) {
+                HStack(alignment: .top, spacing: 8) {
                     VStack{
                         MapView(
                             placedItems: placedItems,
@@ -193,9 +191,12 @@ struct ContentView: View {
                 triggerWidth: $triggerWidth,
                 triggerHeight: $triggerHeight
             )
+            
             .frame(width: 300)
         }
+        .frame(maxHeight:.infinity)
     }
+       
 }
 
 // Añadir esta estructura para manejar las preferencias del rectángulo
