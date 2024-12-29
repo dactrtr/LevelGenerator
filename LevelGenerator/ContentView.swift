@@ -48,8 +48,8 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Contenido principal
+            ZStack {
+                // Main Content
                 switch selectedSection {
                 case .levelEditor:
                     content
@@ -57,41 +57,14 @@ struct ContentView: View {
                     ScriptView()
                 }
                 
-                // Bottom Bar
-                HStack(spacing: 0) {
-                    ForEach(AppSection.allCases, id: \.self) { section in
-                        Button(action: {
-                            selectedSection = section
-                        }) {
-                            VStack(spacing: 6) {
-                                Image(systemName: section == .levelEditor ? "square.grid.2x2" : "doc.text.fill")
-                                    .font(.system(size: 22))
-                                    .symbolRenderingMode(.hierarchical)
-                                    .contentTransition(.symbolEffect(.replace))
-                                Text(section.rawValue)
-                                    .font(.system(size: 11, weight: .medium))
-                            }
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 50)
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .foregroundColor(selectedSection == section ? .blue : .gray.opacity(0.7))
-                    }
-                }
-                .frame(height: 66)
-                .padding(.vertical, 8)
-                .background(
-                    PlatformColor.secondaryBackground
-                        .shadow(color: .black.opacity(0.1), radius: 0, y: -0.5)
-                )
+                // Floating Bottom Bar
+                BottomBar(selectedSection: $selectedSection)
             }
             .navigationTitle(selectedSection.rawValue)
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
         }
-        //.ignoresSafeArea(.all)
     }
     
     var content: some View {
