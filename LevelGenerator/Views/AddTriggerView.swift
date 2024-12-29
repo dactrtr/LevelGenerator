@@ -10,30 +10,9 @@ struct AddTriggerView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Triggers")
-                .font(.headline)
-                .padding(.top, 8)
-            
+            // Width & Height controls
             GroupBox {
                 VStack(spacing: 12) {
-                    // Position X & Y
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Position X")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                        Slider(value: $currentX, in: 16...384)
-                            .tint(.purple)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Position Y")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                        Slider(value: $currentY, in: 16...224)
-                            .tint(.purple)
-                    }
-                    
-                    // Width & Height
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Width: \(Int(previewWidth))")
                             .font(.footnote)
@@ -49,19 +28,19 @@ struct AddTriggerView: View {
                         Slider(value: $previewHeight, in: 30...200)
                             .tint(.purple)
                     }
-                    
-                    // Script number
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Script")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                        Stepper(value: $script, in: 1...100) {
-                            Text("\(script)")
-                                .monospacedDigit()
-                                .frame(width: 30, alignment: .leading)
-                                .foregroundStyle(.primary)
-                        }
-                    }
+                }
+            }
+            
+            // Script number
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Script")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                Stepper(value: $script, in: 1...100) {
+                    Text("\(script)")
+                        .monospacedDigit()
+                        .frame(width: 30, alignment: .leading)
+                        .foregroundStyle(.primary)
                 }
             }
             
@@ -86,6 +65,11 @@ struct AddTriggerView: View {
             .buttonStyle(.borderedProminent)
             .tint(.purple)
             .controlSize(.small)
+            
+            // Control Grid al final
+            ControlGrid(x: $currentX, y: $currentY, width: 400, height: 240)
+                .frame(height: 120)
+                .cornerRadius(8)
         }
         .padding(12)
     }

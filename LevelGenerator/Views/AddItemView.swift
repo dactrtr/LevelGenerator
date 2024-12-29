@@ -7,14 +7,11 @@ struct AddItemView: View {
     @Binding var placedItems: [PlacedItem]
     @State private var nocollide: Bool = false
     
-    let items = ["chair", "table", "box", "trash", "blood", "blood2", "toxic",  "box 1", "box 2", "box 3"]
+    let items = ["chair", "table", "box", "trash", "blood", "blood2", "toxic", "box 1", "box 2", "box 3"]
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Items")
-                .font(.headline)
-                .padding(.top, 8)
-            
+            // Items Grid
             LazyVGrid(columns: [
                 GridItem(.adaptive(minimum: 48, maximum: 48), spacing: 8)
             ], spacing: 8) {
@@ -24,47 +21,22 @@ struct AddItemView: View {
                     } label: {
                         Image(item)
                             .resizable()
-                            .scaledToFit()
                             .frame(width: 32, height: 32)
                             .padding(8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(selectedItem == item ? 
-                                         Color.blue.opacity(0.2) : 
-                                         PlatformColor.secondaryBackground)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(selectedItem == item ? Color.blue : Color.clear, 
-                                           lineWidth: 1.5)
-                            )
+                            .background(selectedItem == item ? Color.blue.opacity(0.2) : Color.clear)
+                            .cornerRadius(8)
                     }
                     .buttonStyle(.plain)
                 }
             }
+            .padding(8)
+            .background(Color.gray.opacity(0.1))
+            .cornerRadius(8)
             
-            GroupBox {
-                VStack(spacing: 12) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Position X")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                        Slider(value: $currentX, in: 16...384)
-                            .tint(.blue)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Position Y")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                        Slider(value: $currentY, in: 16...224)
-                            .tint(.blue)
-                    }
-                }
+            Toggle(isOn: $nocollide) {
+                Text("No Collide")
+                    .font(.footnote)
             }
-            
-            Toggle("No Collide", isOn: $nocollide)
-                .toggleStyle(SwitchToggleStyle(tint: .blue))
             
             Button {
                 placedItems.append(
@@ -85,6 +57,11 @@ struct AddItemView: View {
             .buttonStyle(.borderedProminent)
             .tint(.blue)
             .controlSize(.small)
+            
+            // Control Grid al final
+            ControlGrid(x: $currentX, y: $currentY, width: 400, height: 240)
+                .frame(height: 120)
+                .cornerRadius(8)
         }
         .padding(12)
     }
