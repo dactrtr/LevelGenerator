@@ -6,23 +6,6 @@ struct BottomBar: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Collapse Button
-            Button(action: {
-                withAnimation(.spring()) {
-                    isExpanded.toggle()
-                }
-            }) {
-                Image(systemName: isExpanded ? "chevron.down" : "chevron.up")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.gray)
-                    .frame(width: 30, height: 20)
-                    .background(PlatformColor.secondaryBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
-            }
-            .buttonStyle(.plain)
-            .offset(y: 10)
-            .zIndex(1)
-            
             // Bar Content
             if isExpanded {
                 HStack(spacing: 0) {
@@ -46,7 +29,6 @@ struct BottomBar: View {
                         .foregroundColor(selectedSection == section ? .blue : .gray.opacity(0.7))
                     }
                 }
-                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
         .frame(width: 200)

@@ -11,7 +11,7 @@ public struct PlacedItem: Identifiable {
     // Nuevos campos para triggers
     public let width: Double?
     public let height: Double?
-    public let script: Int?
+    public let script: String?
     
     public init(
         type: String,
@@ -22,7 +22,7 @@ public struct PlacedItem: Identifiable {
         speed: Double? = nil,
         width: Double? = nil,
         height: Double? = nil,
-        script: Int? = nil
+        script: String? = nil
     ) {
         self.type = type
         self.x = x

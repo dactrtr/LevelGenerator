@@ -80,7 +80,7 @@ struct JsonPreviewView: View {
         let enemiesJson = enemyItems.map { item in
             """
                     {
-                        type = "\(item.type)",
+                        name = "\(item.type)",
                         x = \(Int(item.x)),
                         y = \(Int(item.y)),
                         speed = \(item.speed ?? 1.0)
@@ -96,7 +96,7 @@ struct JsonPreviewView: View {
                         y = \(Int(item.y)),
                         width = \(Int(item.width ?? 60)),
                         height = \(Int(item.height ?? 30)),
-                        script = \(item.script ?? 1)
+                        script = "\(item.script ?? "")"
                     }
             """
         }.joined(separator: ",\n")
