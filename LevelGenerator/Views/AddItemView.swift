@@ -7,31 +7,35 @@ struct AddItemView: View {
     @Binding var placedItems: [PlacedItem]
     @State private var nocollide: Bool = false
     
-    let items = ["chair", "table", "box", "trash", "blood", "blood2", "toxic"]
+    let items = ["chair", "table", "box", "trash", "blood", "blood2", "toxic", "xtree-1", "xtree-2", "xtree-3", "xtree-4"]
+    let columns = Array(repeating: GridItem(.fixed(48), spacing: 8), count: 8) // 8 items por página
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Items Grid
-            LazyVGrid(columns: [
-                GridItem(.adaptive(minimum: 48, maximum: 48), spacing: 8)
-            ], spacing: 8) {
-                ForEach(items, id: \.self) { item in
-                    Button {
-                        selectedItem = item
-                    } label: {
-                        Image(item)
-                            .resizable()
-                            .frame(width: 32, height: 32)
-                            .padding(8)
-                            .background(selectedItem == item ? Color.blue.opacity(0.2) : Color.clear)
-                            .cornerRadius(8)
+            // Items Grid with Paging
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHGrid(rows: [GridItem(.fixed(48))], spacing: 8) {
+                    ForEach(items, id: \.self) { item in
+                        Button {
+                            selectedItem = item
+                        } label: {
+                            Image(item)
+                                .resizable()
+                                .frame(width: 32, height: 32)
+                                .padding(8)
+                                .background(selectedItem == item ? Color.blue.opacity(0.2) : Color.clear)
+                                .cornerRadius(8)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
+                .padding(8)
+                .frame(height: 64)
             }
-            .padding(8)
             .background(Color.gray.opacity(0.1))
             .cornerRadius(8)
+            .frame(maxWidth: .infinity)
+            .scrollTargetBehavior(.paging)
             
             // No Collide Toggle
             Toggle(isOn: $nocollide) {

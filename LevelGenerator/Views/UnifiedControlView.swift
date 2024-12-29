@@ -30,7 +30,9 @@ struct UnifiedControlView: View {
                 }
             }
             .pickerStyle(.segmented)
-            .padding(.horizontal,8)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 8)
+            .contentShape(Rectangle())
             
             // Content based on selected mode
             switch selectedMode {

@@ -8,30 +8,34 @@ struct AddEnemyView: View {
     @Binding var placedItems: [PlacedItem]
     
     let enemies = ["brocorat", "frogcolli"]
+    let columns = Array(repeating: GridItem(.fixed(48), spacing: 8), count: 8) // 8 items por página
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Enemy Selection Grid
-            LazyVGrid(columns: [
-                GridItem(.adaptive(minimum: 48, maximum: 48), spacing: 8)
-            ], spacing: 8) {
-                ForEach(enemies, id: \.self) { enemy in
-                    Button {
-                        selectedEnemy = enemy
-                    } label: {
-                        Image(enemy)
-                            .resizable()
-                            .frame(width: 32, height: 32)
-                            .padding(8)
-                            .background(selectedEnemy == enemy ? Color.red.opacity(0.2) : Color.clear)
-                            .cornerRadius(8)
+            // Enemy Grid with Paging
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHGrid(rows: [GridItem(.fixed(48))], spacing: 8) {
+                    ForEach(enemies, id: \.self) { enemy in
+                        Button {
+                            selectedEnemy = enemy
+                        } label: {
+                            Image(enemy)
+                                .resizable()
+                                .frame(width: 32, height: 32)
+                                .padding(8)
+                                .background(selectedEnemy == enemy ? Color.red.opacity(0.2) : Color.clear)
+                                .cornerRadius(8)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
+                .padding(8)
+                .frame(height: 64)
             }
-            .padding(8)
             .background(Color.gray.opacity(0.1))
             .cornerRadius(8)
+            .frame(maxWidth: .infinity)
+            .scrollTargetBehavior(.paging)
             
             // Speed Control
             VStack(alignment: .leading, spacing: 4) {

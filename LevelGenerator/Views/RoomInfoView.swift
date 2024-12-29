@@ -87,12 +87,12 @@ struct RoomInfoView: View {
                         
                         // Doors
                         GroupBox {
-                            VStack(alignment: .leading, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 4) {
                                 Text("Doors")
                                     .font(.headline)
                                     .foregroundStyle(.secondary)
                                 
-                                HStack(spacing: 16) {
+                                HStack(spacing: 8) {
                                     Toggle("⬆️", isOn: $doorTop)
                                         .labelsHidden()
                                     if doorTop {
@@ -108,7 +108,7 @@ struct RoomInfoView: View {
                                     }
                                 }
                                 
-                                HStack(spacing: 16) {
+                                HStack(spacing: 8) {
                                     Toggle("➡️", isOn: $doorRight)
                                         .labelsHidden()
                                     if doorRight {
@@ -124,7 +124,7 @@ struct RoomInfoView: View {
                                     }
                                 }
                                 
-                                HStack(spacing: 16) {
+                                HStack(spacing: 8) {
                                     Toggle("⬇️", isOn: $doorDown)
                                         .labelsHidden()
                                     if doorDown {
@@ -140,7 +140,7 @@ struct RoomInfoView: View {
                                     }
                                 }
                                 
-                                HStack(spacing: 16) {
+                                HStack(spacing: 8) {
                                     Toggle("⬅️", isOn: $doorLeft)
                                         .labelsHidden()
                                     if doorLeft {
