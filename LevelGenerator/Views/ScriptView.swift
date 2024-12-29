@@ -1,12 +1,26 @@
 import SwiftUI
 
 struct ScriptView: View {
+    @Binding var script: SavedScript
+    @Environment(\.dismiss) var dismiss
     @State private var selectedImage: String = "player"
     @State private var currentDialog: String = ""
-    @State private var currentName: String = ""
-    @State private var dialogs: [(image: String, text: String, key: String)] = []
+    @State private var currentName: String
+    @State private var dialogs: [(image: String, text: String, key: String)]
     
     let availableImages = ["player", "playerWorry", "playerSurprise", "radio", "radiopocket", "radioring", "notes"]
+    
+    // Propiedades públicas para SavedScript
+    var scriptName: String { currentName }
+    var scriptDialogs: [(image: String, text: String, key: String)] { dialogs }
+    
+    init(script: Binding<SavedScript>) {
+        self._script = script
+        _currentName = State(initialValue: script.wrappedValue.name)
+        _dialogs = State(initialValue: script.wrappedValue.dialogs.map { dialog in
+            (image: dialog.image, text: dialog.text, key: dialog.key)
+        })
+    }
     
     private func generateScriptKey() -> String {
         // Convertir el nombre a formato válido (reemplazar espacios con guiones)
@@ -157,6 +171,17 @@ struct ScriptView: View {
             .frame(width: 300)
             .padding()
             .background(PlatformColor.groupedBackground)
+        }
+        .navigationTitle(script.name)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button("Save") {
+                    var updatedScript = script
+                    updatedScript.update(with: self)
+                    script = updatedScript
+                    dismiss()
+                }
+            }
         }
     }
 } 
