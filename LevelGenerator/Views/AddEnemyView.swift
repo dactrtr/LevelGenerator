@@ -8,69 +8,45 @@ struct AddEnemyView: View {
     @Binding var placedItems: [PlacedItem]
     
     let enemies = ["brocorat", "frogcolli"]
+    let columns = Array(repeating: GridItem(.fixed(48), spacing: 8), count: 8) // 8 items por página
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Enemies")
-                .font(.headline)
-                .padding(.top, 8)
-            
-            LazyVGrid(columns: [
-                GridItem(.adaptive(minimum: 48, maximum: 48), spacing: 8)
-            ], spacing: 8) {
-                ForEach(enemies, id: \.self) { enemy in
-                    Button {
-                        selectedEnemy = enemy
-                    } label: {
-                        Image(enemy)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 32, height: 32)
-                            .padding(8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(selectedEnemy == enemy ? 
-                                         Color.red.opacity(0.2) : 
-                                         PlatformColor.secondaryBackground)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(selectedEnemy == enemy ? Color.red : Color.clear, 
-                                           lineWidth: 1.5)
-                            )
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            
-            GroupBox {
-                VStack(spacing: 12) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Position X")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                        Slider(value: $enemyX, in: 16...384)
-                            .tint(.red)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Position Y")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                        Slider(value: $enemyY, in: 16...224)
-                            .tint(.red)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Speed")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                        Slider(value: $enemySpeed, in: 0.5...2.0)
-                            .tint(.red)
+            // Enemy Grid with Paging
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHGrid(rows: [GridItem(.fixed(48))], spacing: 8) {
+                    ForEach(enemies, id: \.self) { enemy in
+                        Button {
+                            selectedEnemy = enemy
+                        } label: {
+                            Image(enemy)
+                                .resizable()
+                                .frame(width: 32, height: 32)
+                                .padding(8)
+                                .background(selectedEnemy == enemy ? Color.red.opacity(0.2) : Color.clear)
+                                .cornerRadius(8)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
+                .padding(8)
+                .frame(height: 64)
+            }
+            .background(Color.gray.opacity(0.1))
+            .cornerRadius(8)
+            .frame(maxWidth: .infinity)
+            .scrollTargetBehavior(.paging)
+            
+            // Speed Control
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Speed")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                Slider(value: $enemySpeed, in: 0.5...2.0)
+                    .tint(.red)
             }
             
+            // Add Button
             Button {
                 placedItems.append(
                     PlacedItem(
@@ -90,6 +66,11 @@ struct AddEnemyView: View {
             .buttonStyle(.borderedProminent)
             .tint(.red)
             .controlSize(.small)
+            
+            // Position Control Grid
+            ControlGrid(x: $enemyX, y: $enemyY, width: 400, height: 240)
+                .frame(height: 120)
+                .cornerRadius(8)
         }
         .padding(12)
     }

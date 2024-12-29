@@ -16,6 +16,10 @@ struct JsonPreviewView: View {
     let doorRight: Bool
     let doorDown: Bool
     let doorLeft: Bool
+    let doorTopLeadsTo: Int
+    let doorRightLeadsTo: Int
+    let doorDownLeadsTo: Int
+    let doorLeftLeadsTo: Int
     let onReset: () -> Void
     @State private var showCopiedAlert = false
     
@@ -99,19 +103,19 @@ struct JsonPreviewView: View {
         
         // Generar el JSON de las puertas
         let doorsJson = [
-            (direction: "top", isOpen: doorTop),
-            (direction: "right", isOpen: doorRight),
-            (direction: "down", isOpen: doorDown),
-            (direction: "left", isOpen: doorLeft)
+            (direction: "top", isOpen: doorTop, leadsTo: doorTopLeadsTo),
+            (direction: "right", isOpen: doorRight, leadsTo: doorRightLeadsTo),
+            (direction: "down", isOpen: doorDown, leadsTo: doorDownLeadsTo),
+            (direction: "left", isOpen: doorLeft, leadsTo: doorLeftLeadsTo)
         ]
-        .filter { $0.isOpen } // Solo incluir las puertas que están activas
+        .filter { $0.isOpen }
         .map { door in
             """
-                        {
-                            direction = '\(door.direction)',
-                            open = 'open',
-                            leadsTo = 0
-                        }
+                    {
+                        direction = '\(door.direction)',
+                        open = 'open',
+                        leadsTo = \(level * 100 + door.leadsTo)
+                    }
             """
         }
         .joined(separator: ",\n")
@@ -122,7 +126,7 @@ struct JsonPreviewView: View {
             floor = {
                 level = \(level),
                 visited = false,
-                floorNumber = \(floorNumber),
+                roomNumber = \(floorNumber),
                 tile = \(tile),
                 light = \(String(format: "%.1f", light)),
                 shadow = \(shadow),

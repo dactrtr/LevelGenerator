@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var selectedSection: AppSection = .levelEditor
     @State private var level: Int = 1
     @State private var floorNumber: Int = 1
     @State private var tile: Int = 1
@@ -35,84 +36,128 @@ struct ContentView: View {
     @State private var triggerHeight: Double = 30
     
     // Estados para las puertas
-    @State private var doorTop: Bool = false
-    @State private var doorRight: Bool = false
-    @State private var doorDown: Bool = false
-    @State private var doorLeft: Bool = false
+    @State private var doorTop: Bool = true
+    @State private var doorRight: Bool = true
+    @State private var doorDown: Bool = true
+    @State private var doorLeft: Bool = true
+    
+    @State private var doorTopLeadsTo: Int = 1
+    @State private var doorRightLeadsTo: Int = 1
+    @State private var doorDownLeadsTo: Int = 1
+    @State private var doorLeftLeadsTo: Int = 1
     
     var body: some View {
-        #if os(iOS)
-        content
-        #else
-        content
-        #endif
+        NavigationStack {
+            ZStack {
+                // Main Content
+                switch selectedSection {
+                case .levelEditor:
+                    content
+                case .script:
+                    ScriptView()
+                }
+                
+                // Floating Bottom Bar
+                BottomBar(selectedSection: $selectedSection)
+            }
+            .navigationTitle(selectedSection.rawValue)
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+        }
     }
     
     var content: some View {
         HStack(spacing: 0) {
-         
-            // Center Panel
-            VStack(alignment: .center, spacing: 16) {
-                RoomInfoView(
-                    level: $level,
-                    floorNumber: $floorNumber,
-                    tile: $tile,
-                    light: $light,
-                    shadow: $shadow,
-                    doorTop: $doorTop,
-                    doorRight: $doorRight,
-                    doorDown: $doorDown,
-                    doorLeft: $doorLeft
-                )
+            
+                // Center Panel - Map and Room Info side by side
+                HStack(alignment: .top, spacing: 8) {
+                    VStack{
+                        MapView(
+                            placedItems: placedItems,
+                            selectedItem: selectedItem,
+                            currentX: currentX,
+                            currentY: currentY,
+                            selectedEnemy: selectedEnemy,
+                            enemyX: enemyX,
+                            enemyY: enemyY,
+                            showTriggerPreview: selectedMode == .triggers,
+                            triggerX: triggerX,
+                            triggerY: triggerY,
+                            triggerWidth: triggerWidth,
+                            triggerHeight: triggerHeight,
+                            doorTop: doorTop,
+                            doorRight: doorRight,
+                            doorDown: doorDown,
+                            doorLeft: doorLeft,
+                            doorTopLeadsTo: doorTopLeadsTo,
+                            doorRightLeadsTo: doorRightLeadsTo,
+                            doorDownLeadsTo: doorDownLeadsTo,
+                            doorLeftLeadsTo: doorLeftLeadsTo,
+                            level: level
+                        )
+                        .overlay(
+                            Rectangle()
+                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                        )
+                        
+                        JsonPreviewView(
+                            level: level,
+                            floorNumber: floorNumber,
+                            tile: tile,
+                            light: light,
+                            shadow: shadow,
+                            placedItems: placedItems,
+                            doorTop: doorTop,
+                            doorRight: doorRight,
+                            doorDown: doorDown,
+                            doorLeft: doorLeft,
+                            doorTopLeadsTo: doorTopLeadsTo,
+                            doorRightLeadsTo: doorRightLeadsTo,
+                            doorDownLeadsTo: doorDownLeadsTo,
+                            doorLeftLeadsTo: doorLeftLeadsTo,
+                            onReset: {
+                                level = 1
+                                floorNumber = 1
+                                tile = 1
+                                light = 0.5
+                                shadow = false
+                                placedItems.removeAll()
+                            }
+                        )
+                        
+                        .frame(maxHeight: .infinity)
+                        .padding()
+                        .background(PlatformColor.background)
+                    }
+                    
+                    
+                    RoomInfoView(
+                        level: $level,
+                        floorNumber: $floorNumber,
+                        tile: $tile,
+                        light: $light,
+                        shadow: $shadow,
+                        doorTop: $doorTop,
+                        doorRight: $doorRight,
+                        doorDown: $doorDown,
+                        doorLeft: $doorLeft,
+                        doorTopLeadsTo: $doorTopLeadsTo,
+                        doorRightLeadsTo: $doorRightLeadsTo,
+                        doorDownLeadsTo: $doorDownLeadsTo,
+                        doorLeftLeadsTo: $doorLeftLeadsTo
+                    )
                     .background(PlatformColor.secondaryBackground)
                     .cornerRadius(10)
-                
-                MapView(
-                    placedItems: placedItems,
-                    selectedItem: selectedItem,
-                    currentX: currentX,
-                    currentY: currentY,
-                    selectedEnemy: selectedEnemy,
-                    enemyX: enemyX,
-                    enemyY: enemyY,
-                    showTriggerPreview: selectedMode == .triggers,
-                    triggerX: triggerX,
-                    triggerY: triggerY,
-                    triggerWidth: triggerWidth,
-                    triggerHeight: triggerHeight
-                )
-                    .overlay(
-                        Rectangle()
-                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-                    )
-                
-                JsonPreviewView(
-                    level: level,
-                    floorNumber: floorNumber,
-                    tile: tile,
-                    light: light,
-                    shadow: shadow,
-                    placedItems: placedItems,
-                    doorTop: doorTop,
-                    doorRight: doorRight,
-                    doorDown: doorDown,
-                    doorLeft: doorLeft,
-                    onReset: {
-                        level = 1
-                        floorNumber = 1
-                        tile = 1
-                        light = 0.5
-                        shadow = false
-                        placedItems.removeAll()
-                    }
-                )
-                .cornerRadius(10)
-                .frame(maxHeight: .infinity)
-            }
-            .padding()
-            .background(PlatformColor.background)
+                    .frame(width: 300)
+                }
+                .padding()
+                .background(PlatformColor.background)
             
-            // Right Panel
+          
+            
+            
+            // Right Panel - Controls
             UnifiedControlView(
                 selectedItem: $selectedItem,
                 selectedEnemy: $selectedEnemy,
@@ -128,13 +173,13 @@ struct ContentView: View {
                 triggerWidth: $triggerWidth,
                 triggerHeight: $triggerHeight
             )
+            
             .frame(width: 300)
         }
-        #if os(iOS)
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationTitle("Level Generator")
-        #endif
+       .frame(maxHeight:.infinity)
+       // .ignoresSafeArea(.all)
     }
+       
 }
 
 // Añadir esta estructura para manejar las preferencias del rectángulo
