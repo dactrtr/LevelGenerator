@@ -36,10 +36,10 @@ struct ContentView: View {
     @State private var triggerHeight: Double = 30
     
     // Estados para las puertas
-    @State private var doorTop: Bool = false
-    @State private var doorRight: Bool = false
-    @State private var doorDown: Bool = false
-    @State private var doorLeft: Bool = false
+    @State private var doorTop: Bool = true
+    @State private var doorRight: Bool = true
+    @State private var doorDown: Bool = true
+    @State private var doorLeft: Bool = true
     
     @State private var doorTopLeadsTo: Int = 1
     @State private var doorRightLeadsTo: Int = 1
@@ -94,7 +94,7 @@ struct ContentView: View {
                             doorRightLeadsTo: doorRightLeadsTo,
                             doorDownLeadsTo: doorDownLeadsTo,
                             doorLeftLeadsTo: doorLeftLeadsTo,
-                            floorNumber: floorNumber
+                            level: level
                         )
                         .overlay(
                             Rectangle()

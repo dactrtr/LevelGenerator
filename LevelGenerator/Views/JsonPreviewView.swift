@@ -111,11 +111,11 @@ struct JsonPreviewView: View {
         .filter { $0.isOpen }
         .map { door in
             """
-                        {
-                            direction = '\(door.direction)',
-                            open = 'open',
-                            leadsTo = \(floorNumber * 100 + door.leadsTo)
-                        }
+                    {
+                        direction = '\(door.direction)',
+                        open = 'open',
+                        leadsTo = \(level * 100 + door.leadsTo)
+                    }
             """
         }
         .joined(separator: ",\n")
@@ -126,7 +126,7 @@ struct JsonPreviewView: View {
             floor = {
                 level = \(level),
                 visited = false,
-                floorNumber = \(floorNumber),
+                roomNumber = \(floorNumber),
                 tile = \(tile),
                 light = \(String(format: "%.1f", light)),
                 shadow = \(shadow),

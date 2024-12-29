@@ -36,12 +36,12 @@ struct RoomInfoView: View {
                             }
                         }
                         
-                        // Floor
+                        // Room
                         HStack(spacing: 4) {
-                            Text("Floor")
+                            Text("Room")
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
-                            Stepper(value: $floorNumber, in: 1...10) {
+                            Stepper(value: $floorNumber, in: 1...100) {
                                 Text("\(floorNumber)")
                                     .monospacedDigit()
                                     .frame(width: 30, alignment: .leading)

@@ -21,7 +21,7 @@ struct MapView: View {
     let doorRightLeadsTo: Int
     let doorDownLeadsTo: Int
     let doorLeftLeadsTo: Int
-    let floorNumber: Int
+    let level: Int
     
     var body: some View {
         ZStack {
@@ -102,7 +102,7 @@ struct MapView: View {
             
             // Door numbers
             if doorTop {
-                Text("\(floorNumber * 100 + doorTopLeadsTo)")
+                Text("\(level * 100 + doorTopLeadsTo)")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.white)
                     .padding(.horizontal, 8)
@@ -116,7 +116,7 @@ struct MapView: View {
             }
             
             if doorRight {
-                Text("\(floorNumber * 100 + doorRightLeadsTo)")
+                Text("\(level * 100 + doorRightLeadsTo)")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.white)
                     .padding(.horizontal, 8)
@@ -130,7 +130,7 @@ struct MapView: View {
             }
             
             if doorDown {
-                Text("\(floorNumber * 100 + doorDownLeadsTo)")
+                Text("\(level * 100 + doorDownLeadsTo)")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.white)
                     .padding(.horizontal, 8)
@@ -144,7 +144,7 @@ struct MapView: View {
             }
             
             if doorLeft {
-                Text("\(floorNumber * 100 + doorLeftLeadsTo)")
+                Text("\(level * 100 + doorLeftLeadsTo)")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.white)
                     .padding(.horizontal, 8)
