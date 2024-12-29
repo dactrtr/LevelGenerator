@@ -41,36 +41,47 @@ struct ContentView: View {
     @State private var doorDown: Bool = false
     @State private var doorLeft: Bool = false
     
+    @State private var doorTopLeadsTo: Int = 1
+    @State private var doorRightLeadsTo: Int = 1
+    @State private var doorDownLeadsTo: Int = 1
+    @State private var doorLeftLeadsTo: Int = 1
+    
     var body: some View {
-        VStack(spacing: 0) {
-            // Contenido principal
-            switch selectedSection {
-            case .levelEditor:
-                content
-            case .script:
-                ScriptView()
-            }
-            
-            // Bottom Bar
-            HStack {
-                ForEach(AppSection.allCases, id: \.self) { section in
-                    Button(action: {
-                        selectedSection = section
-                    }) {
-                        VStack(spacing: 4) {
-                            Image(systemName: section == .levelEditor ? "square.grid.2x2" : "doc.text")
-                                .font(.system(size: 20))
-                            Text(section.rawValue)
-                                .font(.caption)
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundColor(selectedSection == section ? .blue : .gray)
+        NavigationStack {
+            VStack(spacing: 0) {
+                // Contenido principal
+                switch selectedSection {
+                case .levelEditor:
+                    content
+                case .script:
+                    ScriptView()
                 }
+                
+                // Bottom Bar
+                HStack {
+                    ForEach(AppSection.allCases, id: \.self) { section in
+                        Button(action: {
+                            selectedSection = section
+                        }) {
+                            VStack(spacing: 4) {
+                                Image(systemName: section == .levelEditor ? "square.grid.2x2" : "doc.text")
+                                    .font(.system(size: 20))
+                                Text(section.rawValue)
+                                    .font(.caption)
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundColor(selectedSection == section ? .blue : .gray)
+                    }
+                }
+                .padding(.vertical, 8)
+                .background(PlatformColor.secondaryBackground)
             }
-            .padding(.vertical, 8)
-            .background(PlatformColor.secondaryBackground)
+            .navigationTitle(selectedSection.rawValue)
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
         }
     }
     
@@ -94,7 +105,16 @@ struct ContentView: View {
                             triggerX: triggerX,
                             triggerY: triggerY,
                             triggerWidth: triggerWidth,
-                            triggerHeight: triggerHeight
+                            triggerHeight: triggerHeight,
+                            doorTop: doorTop,
+                            doorRight: doorRight,
+                            doorDown: doorDown,
+                            doorLeft: doorLeft,
+                            doorTopLeadsTo: doorTopLeadsTo,
+                            doorRightLeadsTo: doorRightLeadsTo,
+                            doorDownLeadsTo: doorDownLeadsTo,
+                            doorLeftLeadsTo: doorLeftLeadsTo,
+                            floorNumber: floorNumber
                         )
                         .overlay(
                             Rectangle()
@@ -112,6 +132,10 @@ struct ContentView: View {
                             doorRight: doorRight,
                             doorDown: doorDown,
                             doorLeft: doorLeft,
+                            doorTopLeadsTo: doorTopLeadsTo,
+                            doorRightLeadsTo: doorRightLeadsTo,
+                            doorDownLeadsTo: doorDownLeadsTo,
+                            doorLeftLeadsTo: doorLeftLeadsTo,
                             onReset: {
                                 level = 1
                                 floorNumber = 1
@@ -137,7 +161,11 @@ struct ContentView: View {
                         doorTop: $doorTop,
                         doorRight: $doorRight,
                         doorDown: $doorDown,
-                        doorLeft: $doorLeft
+                        doorLeft: $doorLeft,
+                        doorTopLeadsTo: $doorTopLeadsTo,
+                        doorRightLeadsTo: $doorRightLeadsTo,
+                        doorDownLeadsTo: $doorDownLeadsTo,
+                        doorLeftLeadsTo: $doorLeftLeadsTo
                     )
                     .background(PlatformColor.secondaryBackground)
                     .cornerRadius(10)
@@ -167,10 +195,6 @@ struct ContentView: View {
             )
             .frame(width: 300)
         }
-        #if os(iOS)
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationTitle("Level Generator")
-        #endif
     }
 }
 

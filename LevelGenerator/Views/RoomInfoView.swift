@@ -10,6 +10,10 @@ struct RoomInfoView: View {
     @Binding var doorRight: Bool
     @Binding var doorDown: Bool
     @Binding var doorLeft: Bool
+    @Binding var doorTopLeadsTo: Int
+    @Binding var doorRightLeadsTo: Int
+    @Binding var doorDownLeadsTo: Int
+    @Binding var doorLeftLeadsTo: Int
     @State private var isExpanded = true
     
     var body: some View {
@@ -89,13 +93,67 @@ struct RoomInfoView: View {
                                     .foregroundStyle(.secondary)
                                 
                                 HStack(spacing: 16) {
-                                    Toggle("Top", isOn: $doorTop)
-                                    Toggle("Right", isOn: $doorRight)
+                                    Toggle("⬆️", isOn: $doorTop)
+                                        .labelsHidden()
+                                    if doorTop {
+                                        Text("Room \(doorTopLeadsTo)")
+                                            .font(.footnote)
+                                            .foregroundColor(.secondary)
+                                        Spacer()
+                                        Stepper(value: $doorTopLeadsTo, in: 1...20) {
+                                            Text("\(doorTopLeadsTo)")
+                                                .monospacedDigit()
+                                        }
+                                        .labelsHidden()
+                                    }
                                 }
                                 
                                 HStack(spacing: 16) {
-                                    Toggle("Down", isOn: $doorDown)
-                                    Toggle("Left", isOn: $doorLeft)
+                                    Toggle("➡️", isOn: $doorRight)
+                                        .labelsHidden()
+                                    if doorRight {
+                                        Text("Room \(doorRightLeadsTo)")
+                                            .font(.footnote)
+                                            .foregroundColor(.secondary)
+                                        Spacer()
+                                        Stepper(value: $doorRightLeadsTo, in: 1...20) {
+                                            Text("\(doorRightLeadsTo)")
+                                                .monospacedDigit()
+                                        }
+                                        .labelsHidden()
+                                    }
+                                }
+                                
+                                HStack(spacing: 16) {
+                                    Toggle("⬇️", isOn: $doorDown)
+                                        .labelsHidden()
+                                    if doorDown {
+                                        Text("Room \(doorDownLeadsTo)")
+                                            .font(.footnote)
+                                            .foregroundColor(.secondary)
+                                        Spacer()
+                                        Stepper(value: $doorDownLeadsTo, in: 1...20) {
+                                            Text("\(doorDownLeadsTo)")
+                                                .monospacedDigit()
+                                        }
+                                        .labelsHidden()
+                                    }
+                                }
+                                
+                                HStack(spacing: 16) {
+                                    Toggle("⬅️", isOn: $doorLeft)
+                                        .labelsHidden()
+                                    if doorLeft {
+                                        Text("Room \(doorLeftLeadsTo)")
+                                            .font(.footnote)
+                                            .foregroundColor(.secondary)
+                                        Spacer()
+                                        Stepper(value: $doorLeftLeadsTo, in: 1...20) {
+                                            Text("\(doorLeftLeadsTo)")
+                                                .monospacedDigit()
+                                        }
+                                        .labelsHidden()
+                                    }
                                 }
                             }
                         }
