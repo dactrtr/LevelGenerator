@@ -6,13 +6,14 @@ struct DialogRow: View {
     let onDelete: () -> Void
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(alignment: .top, spacing: 12) {
             Image(image)
                 .resizable()
-                .frame(width: 32, height: 32)
+                .frame(width: 118, height: 94)
             
             Text(text)
-                .lineLimit(3)
+                .lineLimit(nil)
+                .multilineTextAlignment(.leading)
             
             Spacer()
             

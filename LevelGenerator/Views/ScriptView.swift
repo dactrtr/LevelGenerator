@@ -3,6 +3,7 @@ import SwiftUI
 struct ScriptView: View {
     @State private var selectedImage: String = "player"
     @State private var currentDialog: String = ""
+    @State private var currentName: String = ""
     @State private var currentScriptKey: String = ""
     @State private var dialogs: [(image: String, text: String, key: String)] = []
     
@@ -11,16 +12,19 @@ struct ScriptView: View {
     var generatedLuaScript: String {
         """
         {
-            -- no door key 1
+            -- trigger mess
             dialog = {
-                \(dialogs.map { dialog in
-                    """
-                    {
-                        video = '\(dialog.image)',
-                        text = Graphics.getLocalizedText("\(dialog.key)", "en")
-                    }
-                    """
-                }.joined(separator: ",\n                "))
+                name = "\(currentName)",
+                script = {
+                    \(dialogs.map { dialog in
+                        """
+                        {
+                            video = '\(dialog.image)',
+                            text = Graphics.getLocalizedText("\(dialog.key)", "en"),
+                        }
+                        """
+                    }.joined(separator: ",\n                    "))
+                }
             }
         }
         """
@@ -41,13 +45,13 @@ struct ScriptView: View {
                 // Lua Script
                 GroupBox("Generated Lua Script") {
                     TextEditor(text: .constant(generatedLuaScript))
-                        .font(.system(.body, design: .monospaced))
+                        .font(.system(size: 9, design: .monospaced))
                 }
                 
                 // Localization
                 GroupBox("Generated Localization") {
                     TextEditor(text: .constant(generatedLocalization))
-                        .font(.system(.body, design: .monospaced))
+                        .font(.system(size: 9, design: .monospaced))
                 }
             }
             .frame(width: 400)
@@ -74,14 +78,14 @@ struct ScriptView: View {
                 // Image Selector
                 GroupBox("Select Character") {
                     ScrollView(.horizontal, showsIndicators: false) {
-                        LazyHGrid(rows: [GridItem(.fixed(48))], spacing: 8) {
+                        LazyHGrid(rows: [GridItem(.fixed(110))], spacing: 8) {
                             ForEach(availableImages, id: \.self) { image in
                                 Button {
                                     selectedImage = image
                                 } label: {
                                     Image(image)
                                         .resizable()
-                                        .frame(width: 32, height: 32)
+                                        .frame(width: 118, height: 94)
                                         .padding(8)
                                         .background(selectedImage == image ? Color.blue.opacity(0.2) : Color.clear)
                                         .cornerRadius(8)
@@ -92,10 +96,10 @@ struct ScriptView: View {
                     }
                 }
                 
-                // Dialog Input
-                GroupBox("Dialog Text") {
-                    TextEditor(text: $currentDialog)
-                        .frame(height: 100)
+                // Name Input
+                GroupBox("Dialog Name") {
+                    TextField("Enter dialog name", text: $currentName)
+                        .textFieldStyle(.roundedBorder)
                 }
                 
                 // Script Key Input
@@ -104,9 +108,34 @@ struct ScriptView: View {
                         .textFieldStyle(.roundedBorder)
                 }
                 
+                // Dialog Input
+                GroupBox("Dialog Text") {
+                    TextEditor(text: Binding(
+                        get: { currentDialog },
+                        set: { newValue in
+                            if newValue.count <= 99 {
+                                currentDialog = newValue
+                            }
+                        }
+                    ))
+                    .frame(height: 100)
+                    .overlay(
+                        VStack {
+                            Spacer()
+                            HStack {
+                                Spacer()
+                                Text("\(currentDialog.count)/99")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .padding(4)
+                            }
+                        }
+                    )
+                }
+                
                 // Add Button
                 Button {
-                    if !currentDialog.isEmpty && !currentScriptKey.isEmpty {
+                    if !currentDialog.isEmpty && !currentName.isEmpty && !currentScriptKey.isEmpty {
                         dialogs.append((
                             image: selectedImage,
                             text: currentDialog,
@@ -120,7 +149,7 @@ struct ScriptView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(currentDialog.isEmpty || currentScriptKey.isEmpty)
+                .disabled(currentDialog.isEmpty || currentName.isEmpty || currentScriptKey.isEmpty)
                 
                 Spacer()
             }
