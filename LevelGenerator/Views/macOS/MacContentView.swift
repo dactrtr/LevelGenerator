@@ -24,8 +24,18 @@ struct MacContentView: View {
                 showingNewScriptSheet: $showingNewScriptSheet,
                 showingExportSheet: $showingExportSheet,
                 showingImportSheet: $showingImportSheet,
-                selectedLevel: $selectedLevel,
-                selectedScript: $selectedScript
+                selectedLevel: Binding(
+                    get: { selectedLevel },
+                    set: { newValue in
+                        selectedLevel = newValue
+                    }
+                ),
+                selectedScript: Binding(
+                    get: { selectedScript },
+                    set: { newValue in
+                        selectedScript = newValue
+                    }
+                )
             )
             .navigationTitle(selectedSection == .levels ? "Levels" : "Scripts")
             .toolbar {
