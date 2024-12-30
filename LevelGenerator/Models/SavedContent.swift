@@ -83,11 +83,30 @@ struct SavedScript: Codable, Identifiable {
     }
 }
 
-// Mover la estructura fuera de la clase ContentStore y hacerla pública
-public struct TriggerScriptInfo {
+// Estructura para mantener la información del trigger y su ubicación
+public struct TriggerScriptInfo: Identifiable {
+    public let id = UUID()
     public let name: String
     public let level: Int
     public let room: Int
+    public let roomName: String
+    
+    public var locationDescription: String {
+        "Level \(level) - Room \(room) (\(roomName))"
+    }
+}
+
+// Estructura para agrupar scripts por habitación
+public struct RoomScripts: Identifiable {
+    public let id = UUID()
+    public let level: Int
+    public let room: Int
+    public let roomName: String
+    public let scripts: [TriggerScriptInfo]
+    
+    public var title: String {
+        "Level \(level) - Room \(room) (\(roomName))"
+    }
 }
 
 // Clase para manejar la persistencia
@@ -212,27 +231,47 @@ class ContentStore: ObservableObject {
         return true
     }
     
-    // Función actualizada para obtener scripts únicos con su ubicación
-    func getTriggerScripts() -> [TriggerScriptInfo] {
-        var scriptInfos: [TriggerScriptInfo] = []
+    // Función actualizada para obtener scripts agrupados por habitación
+    func getTriggerScripts() -> [RoomScripts] {
+        var scriptsByRoom: [String: [TriggerScriptInfo]] = [:]
         
         for level in levels {
+            let roomKey = "\(level.level)-\(level.roomNumber)"
+            
             for item in level.placedItems {
                 if let scriptName = item.triggerScriptName {
-                    scriptInfos.append(TriggerScriptInfo(
+                    let scriptInfo = TriggerScriptInfo(
                         name: scriptName,
                         level: level.level,
-                        room: level.roomNumber
-                    ))
+                        room: level.roomNumber,
+                        roomName: level.name
+                    )
+                    
+                    if scriptsByRoom[roomKey] == nil {
+                        scriptsByRoom[roomKey] = []
+                    }
+                    scriptsByRoom[roomKey]?.append(scriptInfo)
                 }
             }
         }
         
-        // Filtrar los nombres que ya existen como scripts
+        // Filtrar scripts que ya existen
         let existingScriptNames = Set(scripts.map { $0.name })
-        return scriptInfos
-            .filter { !existingScriptNames.contains($0.name) }
-            .sorted { $0.name < $1.name }
+        
+        // Convertir el diccionario a un array de RoomScripts
+        return scriptsByRoom.compactMap { key, scripts in
+            let filteredScripts = scripts.filter { !existingScriptNames.contains($0.name) }
+            guard !filteredScripts.isEmpty,
+                  let firstScript = filteredScripts.first else { return nil }
+            
+            return RoomScripts(
+                level: firstScript.level,
+                room: firstScript.room,
+                roomName: firstScript.roomName,
+                scripts: filteredScripts.sorted { $0.name < $1.name }
+            )
+        }
+        .sorted { $0.level == $1.level ? $0.room < $1.room : $0.level < $1.level }
     }
 }
 
