@@ -43,10 +43,42 @@ struct NewScriptSheet: View {
     @ObservedObject var contentStore: ContentStore
     @Environment(\.dismiss) var dismiss
     @State private var scriptName = ""
+    @State private var showingTriggerScripts = false
+    
+    var triggerScripts: [TriggerScriptInfo] {
+        contentStore.getTriggerScripts()
+    }
     
     var body: some View {
         Form {
-            TextField("Script Name", text: $scriptName)
+            Section {
+                TextField("Script Name", text: $scriptName)
+            }
+            
+            if !triggerScripts.isEmpty {
+                Section("Scripts from Triggers") {
+                    ForEach(triggerScripts, id: \.name) { info in
+                        Button {
+                            scriptName = info.name
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    Text(info.name)
+                                    Text("Level \(info.level) - Room \(info.room)")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                if scriptName == info.name {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.accentColor)
+                                }
+                            }
+                        }
+                        .foregroundColor(.primary)
+                    }
+                }
+            }
         }
         .navigationTitle("New Script")
         .toolbar {

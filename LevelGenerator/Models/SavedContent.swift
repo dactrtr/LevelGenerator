@@ -83,6 +83,13 @@ struct SavedScript: Codable, Identifiable {
     }
 }
 
+// Mover la estructura fuera de la clase ContentStore y hacerla pública
+public struct TriggerScriptInfo {
+    public let name: String
+    public let level: Int
+    public let room: Int
+}
+
 // Clase para manejar la persistencia
 class ContentStore: ObservableObject {
     @Published var levels: [SavedLevel] = []
@@ -203,6 +210,29 @@ class ContentStore: ObservableObject {
         
         saveContent()
         return true
+    }
+    
+    // Función actualizada para obtener scripts únicos con su ubicación
+    func getTriggerScripts() -> [TriggerScriptInfo] {
+        var scriptInfos: [TriggerScriptInfo] = []
+        
+        for level in levels {
+            for item in level.placedItems {
+                if let scriptName = item.triggerScriptName {
+                    scriptInfos.append(TriggerScriptInfo(
+                        name: scriptName,
+                        level: level.level,
+                        room: level.roomNumber
+                    ))
+                }
+            }
+        }
+        
+        // Filtrar los nombres que ya existen como scripts
+        let existingScriptNames = Set(scripts.map { $0.name })
+        return scriptInfos
+            .filter { !existingScriptNames.contains($0.name) }
+            .sorted { $0.name < $1.name }
     }
 }
 

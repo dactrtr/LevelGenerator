@@ -44,36 +44,12 @@ public struct PlacedItem: Codable, Identifiable {
         }
     }
     
-    enum CodingKeys: String, CodingKey {
-        case id, type, x, y, itemType, nocollide, speed, width, height, script
-    }
-    
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(UUID.self, forKey: .id)
-        type = try container.decode(String.self, forKey: .type)
-        x = try container.decode(Double.self, forKey: .x)
-        y = try container.decode(Double.self, forKey: .y)
-        itemType = try container.decode(ItemType.self, forKey: .itemType)
-        nocollide = try container.decode(Bool.self, forKey: .nocollide)
-        speed = try container.decodeIfPresent(Double.self, forKey: .speed)
-        width = try container.decodeIfPresent(Double.self, forKey: .width)
-        height = try container.decodeIfPresent(Double.self, forKey: .height)
-        script = try container.decodeIfPresent(String.self, forKey: .script)
-    }
-    
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(id, forKey: .id)
-        try container.encode(type, forKey: .type)
-        try container.encode(x, forKey: .x)
-        try container.encode(y, forKey: .y)
-        try container.encode(itemType, forKey: .itemType)
-        try container.encode(nocollide, forKey: .nocollide)
-        try container.encodeIfPresent(speed, forKey: .speed)
-        try container.encodeIfPresent(width, forKey: .width)
-        try container.encodeIfPresent(height, forKey: .height)
-        try container.encodeIfPresent(script, forKey: .script)
+    // Función auxiliar para obtener el nombre del script si es un trigger
+    var triggerScriptName: String? {
+        if itemType == .trigger {
+            return script
+        }
+        return nil
     }
 }
 
