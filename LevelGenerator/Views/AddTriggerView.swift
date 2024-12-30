@@ -7,6 +7,7 @@ struct AddTriggerView: View {
     @Binding var previewWidth: Double
     @Binding var previewHeight: Double
     @State private var scriptName: String = ""
+    @State private var isCutscene: Bool = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -41,6 +42,12 @@ struct AddTriggerView: View {
                     .textFieldStyle(.roundedBorder)
             }
             
+            // Cutscene Toggle
+            Toggle(isOn: $isCutscene) {
+                Text("Is Cutscene")
+                    .font(.footnote)
+            }
+            
             // Add Button
             Button {
                 placedItems.append(
@@ -51,10 +58,12 @@ struct AddTriggerView: View {
                         itemType: .trigger,
                         width: previewWidth,
                         height: previewHeight,
-                        script: scriptName.isEmpty ? nil : scriptName
+                        script: scriptName.isEmpty ? nil : scriptName,
+                        triggerType: isCutscene ? "cutscene" : nil
                     )
                 )
                 scriptName = ""
+                isCutscene = false
             } label: {
                 Label("Add", systemImage: "plus")
                     .font(.footnote)

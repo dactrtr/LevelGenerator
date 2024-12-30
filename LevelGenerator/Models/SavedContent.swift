@@ -239,7 +239,8 @@ class ContentStore: ObservableObject {
             let roomKey = "\(level.level)-\(level.roomNumber)"
             
             for item in level.placedItems {
-                if let scriptName = item.triggerScriptName {
+                // Solo incluir triggers que no sean cutscenes
+                if let scriptName = item.triggerScriptName, item.triggerType != "cutscene" {
                     let scriptInfo = TriggerScriptInfo(
                         name: scriptName,
                         level: level.level,

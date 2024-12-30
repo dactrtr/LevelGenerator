@@ -26,6 +26,12 @@ struct TriggerListView: View {
                                 Text("Script: \(script)")
                                     .font(.caption)
                             }
+                            
+                            if let triggerType = item.triggerType {
+                                Text("Type: \(triggerType)")
+                                    .font(.caption)
+                                    .foregroundColor(.purple)
+                            }
                         }
                         
                         Spacer()
@@ -40,12 +46,13 @@ struct TriggerListView: View {
                         }
                         .buttonStyle(.borderless)
                     }
-                    .padding()
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
                     .background(PlatformColor.secondaryBackground)
                     .cornerRadius(8)
+                    .padding(.horizontal, 8)
                 }
             }
-            .padding()
         }
     }
 } 
