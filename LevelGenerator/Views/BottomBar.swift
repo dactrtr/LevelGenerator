@@ -2,43 +2,40 @@ import SwiftUI
 
 struct BottomBar: View {
     @Binding var selectedSection: AppSection
-    @State private var isExpanded = true
+    
+    // Separar la vista del botón para simplificar
+    private func sectionButton(_ section: AppSection) -> some View {
+        Button {
+            selectedSection = section
+        } label: {
+            VStack {
+                Image(systemName: iconName(for: section))
+                    .font(.system(size: 24))
+                Text(section.rawValue)
+                    .font(.caption)
+            }
+            .foregroundColor(selectedSection == section ? .accentColor : .gray)
+            .frame(maxWidth: .infinity)
+        }
+    }
+    
+    // Separar la lógica de los iconos
+    private func iconName(for section: AppSection) -> String {
+        switch section {
+        case .contentManager:
+            return "folder"
+        }
+    }
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Bar Content
-            if isExpanded {
-                HStack(spacing: 0) {
-                    ForEach(AppSection.allCases, id: \.self) { section in
-                        Button(action: {
-                            selectedSection = section
-                        }) {
-                            VStack(spacing: 6) {
-                                Image(systemName: section == .levelEditor ? "square.grid.2x2" : "doc.text.fill")
-                                    .font(.system(size: 22))
-                                    .symbolRenderingMode(.hierarchical)
-                                    .contentTransition(.symbolEffect(.replace))
-                                Text(section.rawValue)
-                                    .font(.system(size: 11, weight: .medium))
-                            }
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 50)
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .foregroundColor(selectedSection == section ? .blue : .gray.opacity(0.7))
-                    }
-                }
-            }
+        HStack(spacing: 0) {
+            sectionButton(.contentManager)
         }
-        .frame(width: 200)
-        .frame(height: isExpanded ? 82 : 20)
-        .background(
-            PlatformColor.secondaryBackground
-                .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: -2)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .padding()
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+        .padding(.vertical, 8)
+        .background(.thinMaterial)
     }
+}
+
+#Preview {
+    BottomBar(selectedSection: .constant(.contentManager))
 } 

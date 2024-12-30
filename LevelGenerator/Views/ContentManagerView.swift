@@ -1,242 +1,233 @@
 import SwiftUI
 
+enum ContentSection {
+    case levels, scripts
+}
+
+struct ContentListView: View {
+    @ObservedObject var contentStore: ContentStore
+    @Binding var selectedSection: ContentSection
+    @Binding var showingNewLevelSheet: Bool
+    @Binding var showingNewScriptSheet: Bool
+    @Binding var showingExportSheet: Bool
+    @Binding var showingImportSheet: Bool
+    
+    var body: some View {
+        List {
+            Picker("Section", selection: $selectedSection) {
+                Text("Levels").tag(ContentSection.levels)
+                Text("Scripts").tag(ContentSection.scripts)
+            }
+            .pickerStyle(.segmented)
+            .padding()
+            
+            if selectedSection == .levels {
+                ForEach(contentStore.levels.indices, id: \.self) { index in
+                    NavigationLink {
+                        LevelEditorView(level: contentStore.levelBinding(at: index))
+                    } label: {
+                        VStack(alignment: .leading) {
+                            Text(contentStore.levels[index].name)
+                                .font(.headline)
+                            Text("Level \(contentStore.levels[index].level) - Room \(contentStore.levels[index].roomNumber)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                .onDelete { indexSet in
+                    contentStore.deleteLevel(at: indexSet)
+                }
+            } else {
+                ForEach(contentStore.scripts.indices, id: \.self) { index in
+                    NavigationLink {
+                        ScriptView(script: contentStore.scriptBinding(at: index))
+                    } label: {
+                        VStack(alignment: .leading) {
+                            Text(contentStore.scripts[index].name)
+                                .font(.headline)
+                            Text("\(contentStore.scripts[index].dialogs.count) dialogs")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                .onDelete { indexSet in
+                    contentStore.deleteScript(at: indexSet)
+                }
+            }
+        }
+        .navigationTitle(selectedSection == .levels ? "Levels" : "Scripts")
+        .toolbar {
+            ToolbarItemGroup {
+                Menu {
+                    Button {
+                        showingExportSheet = true
+                    } label: {
+                        Label("Export", systemImage: "square.and.arrow.up")
+                    }
+                    
+                    Button {
+                        showingImportSheet = true
+                    } label: {
+                        Label("Import", systemImage: "square.and.arrow.down")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+                
+                Button {
+                    if selectedSection == .levels {
+                        showingNewLevelSheet = true
+                    } else {
+                        showingNewScriptSheet = true
+                    }
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
+        }
+    }
+}
+
+struct ImportView: View {
+    @ObservedObject var contentStore: ContentStore
+    @Binding var isPresented: Bool
+    @Binding var importText: String
+    @Binding var showingAlert: Bool
+    @Binding var alertMessage: String
+    
+    var body: some View {
+        NavigationStack {
+            VStack {
+                TextEditor(text: $importText)
+                    .font(.system(.body, design: .monospaced))
+                    .padding()
+                
+                HStack {
+                    Button("Import and Replace") {
+                        if contentStore.importFromJSON(importText) {
+                            isPresented = false
+                            importText = ""
+                        } else {
+                            alertMessage = "Invalid data format"
+                            showingAlert = true
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    
+                    Button("Import and Merge") {
+                        if contentStore.mergeFromJSON(importText) {
+                            isPresented = false
+                            importText = ""
+                        } else {
+                            alertMessage = "Invalid data format"
+                            showingAlert = true
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                }
+                .padding()
+            }
+            .navigationTitle("Import Data")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        isPresented = false
+                        importText = ""
+                    }
+                }
+            }
+            .alert("Import Error", isPresented: $showingAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(alertMessage)
+            }
+        }
+    }
+}
+
 struct ContentManagerView: View {
-    @State private var savedLevels: [SavedLevel] = []
-    @State private var savedScripts: [SavedScript] = []
+    @StateObject private var contentStore = ContentStore()
     @State private var selectedSection: ContentSection = .levels
     @State private var showingNewLevelSheet = false
     @State private var showingNewScriptSheet = false
-    
-    enum ContentSection {
-        case levels, scripts
-    }
+    @State private var showingExportSheet = false
+    @State private var showingImportSheet = false
+    @State private var importText = ""
+    @State private var showingImportAlert = false
+    @State private var importAlertMessage = ""
     
     var body: some View {
         #if os(iOS)
         NavigationStack {
-            List {
-                Picker("Section", selection: $selectedSection) {
-                    Text("Levels").tag(ContentSection.levels)
-                    Text("Scripts").tag(ContentSection.scripts)
-                }
-                .pickerStyle(.segmented)
-                .padding()
-                
-                if selectedSection == .levels {
-                    ForEach(savedLevels.indices, id: \.self) { index in
-                        NavigationLink {
-                            LevelEditorView(level: $savedLevels[index])
-                        } label: {
-                            VStack(alignment: .leading) {
-                                Text(savedLevels[index].name)
-                                    .font(.headline)
-                                Text("Level \(savedLevels[index].level) - Room \(savedLevels[index].roomNumber)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
-                    .onDelete { indexSet in
-                        savedLevels.remove(atOffsets: indexSet)
-                    }
-                } else {
-                    ForEach(savedScripts.indices, id: \.self) { index in
-                        NavigationLink {
-                            ScriptView(script: $savedScripts[index])
-                        } label: {
-                            VStack(alignment: .leading) {
-                                Text(savedScripts[index].name)
-                                    .font(.headline)
-                                Text("\(savedScripts[index].dialogs.count) dialogs")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
-                    .onDelete { indexSet in
-                        savedScripts.remove(atOffsets: indexSet)
-                    }
-                }
-            }
-            .navigationTitle(selectedSection == .levels ? "Levels" : "Scripts")
-            .safeToolbar {
-                Button {
-                    if selectedSection == .levels {
-                        showingNewLevelSheet = true
-                    } else {
-                        showingNewScriptSheet = true
-                    }
-                } label: {
-                    Image(systemName: "plus")
-                }
-            }
+            ContentListView(
+                contentStore: contentStore,
+                selectedSection: $selectedSection,
+                showingNewLevelSheet: $showingNewLevelSheet,
+                showingNewScriptSheet: $showingNewScriptSheet,
+                showingExportSheet: $showingExportSheet,
+                showingImportSheet: $showingImportSheet
+            )
         }
         .sheet(isPresented: $showingNewLevelSheet) {
-            NewLevelSheet(savedLevels: $savedLevels)
+            NavigationStack {
+                NewLevelSheet(contentStore: contentStore)
+            }
         }
         .sheet(isPresented: $showingNewScriptSheet) {
-            NewScriptSheet(savedScripts: $savedScripts)
+            NavigationStack {
+                NewScriptSheet(contentStore: contentStore)
+            }
+        }
+        .sheet(isPresented: $showingExportSheet) {
+            ExportView(contentStore: contentStore, isPresented: $showingExportSheet)
+        }
+        .sheet(isPresented: $showingImportSheet) {
+            ImportView(
+                contentStore: contentStore,
+                isPresented: $showingImportSheet,
+                importText: $importText,
+                showingAlert: $showingImportAlert,
+                alertMessage: $importAlertMessage
+            )
         }
         #else
-        NavigationSplitView {
-            List(selection: $selectedSection) {
-                Section("Content") {
-                    Text("Levels")
-                        .tag(ContentSection.levels)
-                    Text("Scripts")
-                        .tag(ContentSection.scripts)
-                }
-            }
-        } content: {
-            List {
-                if selectedSection == .levels {
-                    ForEach(savedLevels.indices, id: \.self) { index in
-                        NavigationLink {
-                            LevelEditorView(level: $savedLevels[index])
-                        } label: {
-                            VStack(alignment: .leading) {
-                                Text(savedLevels[index].name)
-                                    .font(.headline)
-                                Text("Level \(savedLevels[index].level) - Room \(savedLevels[index].roomNumber)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
-                    .onDelete { indexSet in
-                        savedLevels.remove(atOffsets: indexSet)
-                    }
-                } else {
-                    ForEach(savedScripts.indices, id: \.self) { index in
-                        NavigationLink {
-                            ScriptView(script: $savedScripts[index])
-                        } label: {
-                            VStack(alignment: .leading) {
-                                Text(savedScripts[index].name)
-                                    .font(.headline)
-                                Text("\(savedScripts[index].dialogs.count) dialogs")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
-                    .onDelete { indexSet in
-                        savedScripts.remove(atOffsets: indexSet)
-                    }
-                }
-            }
-            .navigationTitle(selectedSection == .levels ? "Levels" : "Scripts")
-            .safeToolbar {
-                Button {
-                    if selectedSection == .levels {
-                        showingNewLevelSheet = true
-                    } else {
-                        showingNewScriptSheet = true
-                    }
-                } label: {
-                    Image(systemName: "plus")
-                }
-            }
-        } detail: {
-            Text("Select a level or script to edit")
-                .foregroundColor(.secondary)
-        }
-        .sheet(isPresented: $showingNewLevelSheet) {
-            NewLevelSheet(savedLevels: $savedLevels)
-        }
-        .sheet(isPresented: $showingNewScriptSheet) {
-            NewScriptSheet(savedScripts: $savedScripts)
-        }
+        MacContentView(
+            contentStore: contentStore,
+            selectedSection: $selectedSection,
+            showingNewLevelSheet: $showingNewLevelSheet,
+            showingNewScriptSheet: $showingNewScriptSheet,
+            showingExportSheet: $showingExportSheet,
+            showingImportSheet: $showingImportSheet,
+            importText: $importText,
+            showingImportAlert: $showingImportAlert,
+            importAlertMessage: $importAlertMessage
+        )
         #endif
     }
 }
 
-struct NewLevelSheet: View {
-    @Binding var savedLevels: [SavedLevel]
-    @Environment(\.dismiss) var dismiss
-    @State private var levelName = ""
+struct ExportView: View {
+    @ObservedObject var contentStore: ContentStore
+    @Binding var isPresented: Bool
     
     var body: some View {
-        NavigationView {
-            Form {
-                TextField("Level Name", text: $levelName)
+        NavigationStack {
+            ScrollView {
+                if let jsonString = contentStore.exportToJSON() {
+                    Text(jsonString)
+                        .font(.system(.body, design: .monospaced))
+                        .textSelection(.enabled)
+                        .padding()
+                }
             }
-            .navigationTitle("New Level")
+            .navigationTitle("Export Data")
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Create") {
-                        let newLevel = SavedLevel(
-                            id: UUID(),
-                            name: levelName,
-                            level: 1,
-                            roomNumber: 1,
-                            tile: 1,
-                            light: 0.5,
-                            shadow: false,
-                            doors: SavedLevel.SavedDoors(
-                                top: true, right: true, down: true, left: true,
-                                topLeadsTo: 1, rightLeadsTo: 1, downLeadsTo: 1, leftLeadsTo: 1
-                            ),
-                            placedItems: []
-                        )
-                        savedLevels.append(newLevel)
-                        dismiss()
-                    }
-                    .disabled(levelName.isEmpty)
+                    Button("Done") { isPresented = false }
                 }
             }
         }
-    }
-}
-
-struct NewScriptSheet: View {
-    @Binding var savedScripts: [SavedScript]
-    @Environment(\.dismiss) var dismiss
-    @State private var scriptName = ""
-    
-    var body: some View {
-        NavigationView {
-            Form {
-                TextField("Script Name", text: $scriptName)
-            }
-            .navigationTitle("New Script")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Create") {
-                        let newScript = SavedScript(
-                            id: UUID(),
-                            name: scriptName,
-                            dialogs: []
-                        )
-                        savedScripts.append(newScript)
-                        dismiss()
-                    }
-                    .disabled(scriptName.isEmpty)
-                }
-            }
-        }
-    }
-}
-
-// Extension para manejar la toolbar de manera segura
-extension View {
-    func safeToolbar<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        #if os(macOS)
-        self.toolbar {
-            ToolbarItemGroup {
-                content()
-            }
-        }
-        #else
-        self.toolbar {
-            content()
-        }
-        #endif
     }
 } 
