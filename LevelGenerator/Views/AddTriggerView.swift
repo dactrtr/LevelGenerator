@@ -12,13 +12,13 @@ struct AddTriggerView: View {
         VStack(alignment: .leading, spacing: 12) {
             // Size Controls
             GroupBox {
-                VStack(spacing: 12) {
+                HStack(spacing: 12) {
                     // Width Control
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Width: \(Int(previewWidth))")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
-                        Slider(value: $previewWidth, in: 30...200)
+                        Slider(value: $previewWidth, in: 20...200)
                             .tint(.purple)
                     }
                     
@@ -27,14 +27,16 @@ struct AddTriggerView: View {
                         Text("Height: \(Int(previewHeight))")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
-                        Slider(value: $previewHeight, in: 30...200)
+                        Slider(value: $previewHeight, in: 20...200)
                             .tint(.purple)
                     }
                 }
             }
             
             // Script Name Input
-            GroupBox("Script Name") {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Script Name")
+                    .font(.footnote)
                 TextField("Enter script name", text: $scriptName)
                     .textFieldStyle(.roundedBorder)
             }

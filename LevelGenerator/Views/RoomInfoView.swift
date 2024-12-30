@@ -89,6 +89,7 @@ struct RoomInfoView: View {
                         .foregroundStyle(.secondary)
                     
                     HStack(spacing: 8) {
+                        Image(systemName: "arrowshape.up.circle")
                         Toggle("⬆️", isOn: $doorTop)
                             .labelsHidden()
                         if doorTop {
@@ -105,6 +106,7 @@ struct RoomInfoView: View {
                     }
                     
                     HStack(spacing: 8) {
+                        Image(systemName: "arrowshape.right.circle")
                         Toggle("➡️", isOn: $doorRight)
                             .labelsHidden()
                         if doorRight {
@@ -121,6 +123,7 @@ struct RoomInfoView: View {
                     }
                     
                     HStack(spacing: 8) {
+                        Image(systemName: "arrowshape.down.circle")
                         Toggle("⬇️", isOn: $doorDown)
                             .labelsHidden()
                         if doorDown {
@@ -137,6 +140,7 @@ struct RoomInfoView: View {
                     }
                     
                     HStack(spacing: 8) {
+                        Image(systemName: "arrowshape.left.circle")
                         Toggle("⬅️", isOn: $doorLeft)
                             .labelsHidden()
                         if doorLeft {
@@ -154,6 +158,6 @@ struct RoomInfoView: View {
                 }
             }
         }
-        .padding(16)
+        .padding(4)
     }
 } 
