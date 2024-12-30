@@ -74,6 +74,39 @@ struct ContentListView: View {
                 }
             }
         }
+        #if os(iOS)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    if selectedSection == .levels {
+                        showingNewLevelSheet = true
+                    } else {
+                        showingNewScriptSheet = true
+                    }
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
+            
+            ToolbarItem(placement: .primaryAction) {
+                Menu {
+                    Button {
+                        showingExportSheet = true
+                    } label: {
+                        Label("Export", systemImage: "square.and.arrow.up")
+                    }
+                    
+                    Button {
+                        showingImportSheet = true
+                    } label: {
+                        Label("Import", systemImage: "square.and.arrow.down")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+            }
+        }
+        #endif
         .sheet(isPresented: $showingConnectionMap) {
             NavigationStack {
                 RoomConnectionMapView(levels: contentStore.levels, contentStore: contentStore)

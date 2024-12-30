@@ -12,39 +12,38 @@ struct MacContentView: View {
     @Binding var showingImportAlert: Bool
     @Binding var importAlertMessage: String
     
-    @State private var selectedLevel: SavedLevel?
-    @State private var selectedScript: SavedScript?
-    @State private var columnVisibility = NavigationSplitViewVisibility.all
+    @State private var selectedLevelId: UUID?
+    @State private var selectedScriptId: UUID?
+    @State private var columnVisibility = NavigationSplitViewVisibility.doubleColumn
     @State private var showingConnectionMap = false
     
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
-            // Sidebar
+            // Sidebar con secciones principales
             List(selection: $selectedSection) {
-                Text("Levels")
-                    .tag(ContentSection.levels)
-                Text("Scripts")
-                    .tag(ContentSection.scripts)
+                NavigationLink(value: ContentSection.levels) {
+                    Label("Levels", systemImage: "square.stack.3d.up")
+                }
+                
+                NavigationLink(value: ContentSection.scripts) {
+                    Label("Scripts", systemImage: "text.word.spacing")
+                }
             }
+            .navigationTitle("Content")
+            .listStyle(.sidebar)
         } content: {
-            // Content List
-            List {
+            // Lista de contenido con selección
+            List(selection: selectedSection == .levels ? $selectedLevelId : $selectedScriptId) {
                 if selectedSection == .levels {
-                    ForEach(contentStore.levels) { level in
-                        LevelRow(level: level)
-                            .onTapGesture {
-                                selectedLevel = level
-                                selectedScript = nil
+                    Section {
+                        ForEach(contentStore.levels) { level in
+                            NavigationLink(value: level.id) {
+                                LevelRow(level: level)
                             }
-                            .background(
-                                selectedLevel?.id == level.id ?
-                                    Color.accentColor.opacity(0.1) : Color.clear
-                            )
-                    }
-                    .onDelete { indexSet in
-                        contentStore.deleteLevel(at: indexSet)
-                        if selectedLevel != nil {
-                            selectedLevel = nil
+                        }
+                        .onDelete { indexSet in
+                            contentStore.deleteLevel(at: indexSet)
+                            selectedLevelId = nil
                         }
                     }
                     
@@ -57,27 +56,19 @@ struct MacContentView: View {
                     }
                 } else {
                     ForEach(contentStore.scripts) { script in
-                        ScriptRow(script: script)
-                            .onTapGesture {
-                                selectedScript = script
-                                selectedLevel = nil
-                            }
-                            .background(
-                                selectedScript?.id == script.id ?
-                                    Color.accentColor.opacity(0.1) : Color.clear
-                            )
+                        NavigationLink(value: script.id) {
+                            ScriptRow(script: script)
+                        }
                     }
                     .onDelete { indexSet in
                         contentStore.deleteScript(at: indexSet)
-                        if selectedScript != nil {
-                            selectedScript = nil
-                        }
+                        selectedScriptId = nil
                     }
                 }
             }
             .navigationTitle(selectedSection == .levels ? "Levels" : "Scripts")
             .toolbar {
-                ToolbarItem {
+                ToolbarItemGroup {
                     Button {
                         if selectedSection == .levels {
                             showingNewLevelSheet = true
@@ -85,11 +76,9 @@ struct MacContentView: View {
                             showingNewScriptSheet = true
                         }
                     } label: {
-                        Image(systemName: "plus")
+                        Label("Add", systemImage: "plus")
                     }
-                }
-                
-                ToolbarItem {
+                    
                     Menu {
                         Button {
                             showingExportSheet = true
@@ -103,33 +92,42 @@ struct MacContentView: View {
                             Label("Import", systemImage: "square.and.arrow.down")
                         }
                     } label: {
-                        Image(systemName: "ellipsis.circle")
+                        Label("More", systemImage: "ellipsis.circle")
                     }
                 }
             }
         } detail: {
-            // Detail View
+            // Vista de detalle
             Group {
                 if selectedSection == .levels {
-                    if let level = selectedLevel,
-                       let index = contentStore.levels.firstIndex(where: { $0.id == level.id }) {
+                    if let selectedId = selectedLevelId,
+                       let index = contentStore.levels.firstIndex(where: { $0.id == selectedId }) {
                         LevelEditorView(level: contentStore.levelBinding(at: index))
+                            .id(selectedId) // Para forzar la actualización de la vista
                     } else {
-                        Text("Select a level")
-                            .foregroundColor(.secondary)
+                        ContentUnavailableView {
+                            Label("No Level Selected", systemImage: "square.stack.3d.up")
+                        } description: {
+                            Text("Select a level from the list to edit it")
+                        }
                     }
                 } else {
-                    if let script = selectedScript,
-                       let index = contentStore.scripts.firstIndex(where: { $0.id == script.id }) {
+                    if let selectedId = selectedScriptId,
+                       let index = contentStore.scripts.firstIndex(where: { $0.id == selectedId }) {
                         ScriptView(script: contentStore.scriptBinding(at: index))
+                            .id(selectedId)
                     } else {
-                        Text("Select a script")
-                            .foregroundColor(.secondary)
+                        ContentUnavailableView {
+                            Label("No Script Selected", systemImage: "text.word.spacing")
+                        } description: {
+                            Text("Select a script from the list to edit it")
+                        }
                     }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .navigationSplitViewStyle(.balanced)
         .sheet(isPresented: $showingConnectionMap) {
             NavigationStack {
                 RoomConnectionMapView(levels: contentStore.levels, contentStore: contentStore)

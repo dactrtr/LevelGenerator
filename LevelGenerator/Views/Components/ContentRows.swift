@@ -7,9 +7,14 @@ struct LevelRow: View {
         VStack(alignment: .leading) {
             Text(level.name)
                 .font(.headline)
-            Text("Level \(level.level) - Room \(level.roomNumber)")
-                .font(.caption)
-                .foregroundColor(.secondary)
+            HStack {
+                Text("Level \(level.level)")
+                Text("•")
+                    .foregroundColor(.secondary)
+                Text("Room \(level.roomNumber)")
+            }
+            .font(.caption)
+            .foregroundColor(.secondary)
         }
         .padding(.vertical, 4)
     }
