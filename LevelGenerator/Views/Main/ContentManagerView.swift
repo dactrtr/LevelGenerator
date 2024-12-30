@@ -12,51 +12,33 @@ struct ContentManagerView: View {
     @State private var importAlertMessage = ""
     
     var body: some View {
-        #if os(iOS)
-        NavigationStack {
-            ContentListView(
+        Group {
+            #if os(iOS)
+            iOSContentView(
                 contentStore: contentStore,
                 selectedSection: $selectedSection,
                 showingNewLevelSheet: $showingNewLevelSheet,
                 showingNewScriptSheet: $showingNewScriptSheet,
                 showingExportSheet: $showingExportSheet,
-                showingImportSheet: $showingImportSheet
-            )
-        }
-        .sheet(isPresented: $showingNewLevelSheet) {
-            NavigationStack {
-                NewLevelSheet(contentStore: contentStore)
-            }
-        }
-        .sheet(isPresented: $showingNewScriptSheet) {
-            NavigationStack {
-                NewScriptSheet(contentStore: contentStore)
-            }
-        }
-        .sheet(isPresented: $showingExportSheet) {
-            ExportView(contentStore: contentStore, isPresented: $showingExportSheet)
-        }
-        .sheet(isPresented: $showingImportSheet) {
-            ImportView(
-                contentStore: contentStore,
-                isPresented: $showingImportSheet,
+                showingImportSheet: $showingImportSheet,
                 importText: $importText,
-                showingAlert: $showingImportAlert,
-                alertMessage: $importAlertMessage
+                showingImportAlert: $showingImportAlert,
+                importAlertMessage: $importAlertMessage
             )
+            #else
+            MacContentView(
+                contentStore: contentStore,
+                selectedSection: $selectedSection,
+                showingNewLevelSheet: $showingNewLevelSheet,
+                showingNewScriptSheet: $showingNewScriptSheet,
+                showingExportSheet: $showingExportSheet,
+                showingImportSheet: $showingImportSheet,
+                importText: $importText,
+                showingImportAlert: $showingImportAlert,
+                importAlertMessage: $importAlertMessage
+            )
+            #endif
         }
-        #else
-        MacContentView(
-            contentStore: contentStore,
-            selectedSection: $selectedSection,
-            showingNewLevelSheet: $showingNewLevelSheet,
-            showingNewScriptSheet: $showingNewScriptSheet,
-            showingExportSheet: $showingExportSheet,
-            showingImportSheet: $showingImportSheet,
-            importText: $importText,
-            showingImportAlert: $showingImportAlert,
-            importAlertMessage: $importAlertMessage
-        )
-        #endif
+        .preferredColorScheme(.light)
     }
 } 

@@ -7,6 +7,8 @@ struct ContentListView: View {
     @Binding var showingNewScriptSheet: Bool
     @Binding var showingExportSheet: Bool
     @Binding var showingImportSheet: Bool
+    @Binding var selectedLevel: SavedLevel?
+    @Binding var selectedScript: SavedScript?
     @State private var showingConnectionMap = false
     
     var body: some View {
@@ -20,21 +22,27 @@ struct ContentListView: View {
             
             if selectedSection == .levels {
                 ForEach(contentStore.levels.indices, id: \.self) { index in
+                    #if os(iOS)
                     NavigationLink {
                         LevelEditorView(level: contentStore.levelBinding(at: index))
                     } label: {
-                        VStack(alignment: .leading) {
-                            Text(contentStore.levels[index].name)
-                                .font(.headline)
-                            Text("Level \(contentStore.levels[index].level) - Room \(contentStore.levels[index].roomNumber)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
+                        LevelRow(level: contentStore.levels[index])
                     }
+                    #else
+                    LevelRow(level: contentStore.levels[index])
+                        .onTapGesture {
+                            selectedLevel = contentStore.levels[index]
+                        }
+                        .background(
+                            selectedLevel?.id == contentStore.levels[index].id ?
+                                Color.blue.opacity(0.1) : Color.clear
+                        )
+                    #endif
                 }
                 .onDelete { indexSet in
                     contentStore.deleteLevel(at: indexSet)
                 }
+                
                 Section {
                     Button {
                         showingConnectionMap = true
@@ -44,56 +52,31 @@ struct ContentListView: View {
                 }
             } else {
                 ForEach(contentStore.scripts.indices, id: \.self) { index in
+                    #if os(iOS)
                     NavigationLink {
                         ScriptView(script: contentStore.scriptBinding(at: index))
                     } label: {
-                        VStack(alignment: .leading) {
-                            Text(contentStore.scripts[index].name)
-                                .font(.headline)
-                            Text("\(contentStore.scripts[index].dialogs.count) dialogs")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
+                        ScriptRow(script: contentStore.scripts[index])
                     }
+                    #else
+                    ScriptRow(script: contentStore.scripts[index])
+                        .onTapGesture {
+                            selectedScript = contentStore.scripts[index]
+                        }
+                        .background(
+                            selectedScript?.id == contentStore.scripts[index].id ?
+                                Color.blue.opacity(0.1) : Color.clear
+                        )
+                    #endif
                 }
                 .onDelete { indexSet in
                     contentStore.deleteScript(at: indexSet)
                 }
             }
         }
-        .navigationTitle(selectedSection == .levels ? "Levels" : "Scripts")
-        .toolbar {
-            ToolbarItemGroup {
-                Menu {
-                    Button {
-                        showingExportSheet = true
-                    } label: {
-                        Label("Export", systemImage: "square.and.arrow.up")
-                    }
-                    
-                    Button {
-                        showingImportSheet = true
-                    } label: {
-                        Label("Import", systemImage: "square.and.arrow.down")
-                    }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                }
-                
-                Button {
-                    if selectedSection == .levels {
-                        showingNewLevelSheet = true
-                    } else {
-                        showingNewScriptSheet = true
-                    }
-                } label: {
-                    Image(systemName: "plus")
-                }
-            }
-        }
         .sheet(isPresented: $showingConnectionMap) {
             NavigationStack {
-                RoomConnectionMapView(levels: contentStore.levels)
+                RoomConnectionMapView(levels: contentStore.levels, contentStore: contentStore)
                     .navigationTitle("Room Connections")
                     .toolbar {
                         ToolbarItem(placement: .confirmationAction) {
@@ -103,6 +86,34 @@ struct ContentListView: View {
                         }
                     }
             }
+        }
+    }
+}
+
+struct LevelRow: View {
+    let level: SavedLevel
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text(level.name)
+                .font(.headline)
+            Text("Level \(level.level) - Room \(level.roomNumber)")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+    }
+}
+
+struct ScriptRow: View {
+    let script: SavedScript
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text(script.name)
+                .font(.headline)
+            Text("\(script.dialogs.count) dialogs")
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
     }
 } 

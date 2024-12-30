@@ -290,4 +290,28 @@ extension ContentStore {
             set: { self.updateScript(at: index, with: $0) }
         )
     }
+}
+
+extension ContentStore {
+    struct NodePosition: Codable {
+        let roomNumber: Int
+        let x: Double
+        let y: Double
+    }
+    
+    private var nodePositionsKey: String { "nodePositions" }
+    
+    func saveNodePositions(_ positions: [NodePosition]) {
+        if let encoded = try? JSONEncoder().encode(positions) {
+            UserDefaults.standard.set(encoded, forKey: nodePositionsKey)
+        }
+    }
+    
+    func loadNodePositions() -> [NodePosition] {
+        guard let data = UserDefaults.standard.data(forKey: nodePositionsKey),
+              let positions = try? JSONDecoder().decode([NodePosition].self, from: data) else {
+            return []
+        }
+        return positions
+    }
 } 

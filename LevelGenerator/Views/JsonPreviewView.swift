@@ -133,7 +133,11 @@ struct JsonPreviewView: View {
                 doors = {
         \(doorsJson)
                 },
-                comic = {},
+                comic = {
+                        wasPlayed = false,
+                        name = "intro-comic",
+                        play = "enter"
+                },
                 items = {},
                 triggers = {
         \(triggersJson)

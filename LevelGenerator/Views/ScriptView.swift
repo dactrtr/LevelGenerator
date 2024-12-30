@@ -23,11 +23,8 @@ struct ScriptView: View {
     }
     
     private func generateScriptKey() -> String {
-        // Convertir el nombre a formato válido (reemplazar espacios con guiones)
         let formattedName = currentName.lowercased().replacingOccurrences(of: " ", with: "-")
-        // Contar cuántos diálogos hay para este nombre
         let dialogCount = dialogs.filter { $0.key.starts(with: formattedName) }.count + 1
-        // Generar el número con formato de dos dígitos
         let numberString = String(format: "%02d", dialogCount)
         return "\(formattedName)-\(numberString)"
     }
@@ -65,15 +62,31 @@ struct ScriptView: View {
             // Left Column - Script Editors
             VStack {
                 // Lua Script
-                GroupBox("Generated Lua Script") {
-                    TextEditor(text: .constant(generatedLuaScript))
-                        .font(.system(size: 9, design: .monospaced))
+                GroupBox {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text("Generated Lua Script")
+                                .font(.headline)
+                            Spacer()
+                            CopyButton(content: generatedLuaScript)
+                        }
+                        TextEditor(text: .constant(generatedLuaScript))
+                            .font(.system(size: 9, design: .monospaced))
+                    }
                 }
                 
                 // Localization
-                GroupBox("Generated Localization") {
-                    TextEditor(text: .constant(generatedLocalization))
-                        .font(.system(size: 9, design: .monospaced))
+                GroupBox {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text("Generated Localization")
+                                .font(.headline)
+                            Spacer()
+                            CopyButton(content: generatedLocalization)
+                        }
+                        TextEditor(text: .constant(generatedLocalization))
+                            .font(.system(size: 9, design: .monospaced))
+                    }
                 }
             }
             .frame(width: 400)

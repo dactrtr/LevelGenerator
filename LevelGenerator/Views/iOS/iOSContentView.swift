@@ -1,7 +1,7 @@
-#if os(macOS)
+#if os(iOS)
 import SwiftUI
 
-struct MacContentView: View {
+struct iOSContentView: View {
     @ObservedObject var contentStore: ContentStore
     @Binding var selectedSection: ContentSection
     @Binding var showingNewLevelSheet: Bool
@@ -13,33 +13,27 @@ struct MacContentView: View {
     @Binding var importAlertMessage: String
     
     var body: some View {
-        NavigationSplitView {
-            List(selection: $selectedSection) {
-                Section("Content") {
-                    Text("Levels")
-                        .tag(ContentSection.levels)
-                    Text("Scripts")
-                        .tag(ContentSection.scripts)
-                }
-            }
-        } content: {
+        NavigationStack {
             ContentListView(
                 contentStore: contentStore,
                 selectedSection: $selectedSection,
                 showingNewLevelSheet: $showingNewLevelSheet,
                 showingNewScriptSheet: $showingNewScriptSheet,
                 showingExportSheet: $showingExportSheet,
-                showingImportSheet: $showingImportSheet
+                showingImportSheet: $showingImportSheet,
+                selectedLevel: .constant(nil),
+                selectedScript: .constant(nil)
             )
-        } detail: {
-            Text("Select a level or script to edit")
-                .foregroundColor(.secondary)
         }
         .sheet(isPresented: $showingNewLevelSheet) {
-            NewLevelSheet(contentStore: contentStore)
+            NavigationStack {
+                NewLevelSheet(contentStore: contentStore)
+            }
         }
         .sheet(isPresented: $showingNewScriptSheet) {
-            NewScriptSheet(contentStore: contentStore)
+            NavigationStack {
+                NewScriptSheet(contentStore: contentStore)
+            }
         }
         .sheet(isPresented: $showingExportSheet) {
             ExportView(contentStore: contentStore, isPresented: $showingExportSheet)
