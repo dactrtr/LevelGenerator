@@ -18,7 +18,7 @@ protocol LevelEditorState {
     var doorLeftLeadsTo: Int { get }
 }
 
-struct SavedLevel: Codable, Identifiable {
+struct SavedLevel: Codable, Identifiable, Hashable {
     let id: UUID
     var name: String
     var level: Int
@@ -29,7 +29,7 @@ struct SavedLevel: Codable, Identifiable {
     var doors: SavedDoors
     var placedItems: [PlacedItem]
     
-    struct SavedDoors: Codable {
+    struct SavedDoors: Codable, Hashable {
         var top: Bool
         var right: Bool
         var down: Bool
@@ -62,14 +62,23 @@ struct SavedLevel: Codable, Identifiable {
             leftLeadsTo: editor.doorLeftLeadsTo
         )
     }
+    
+    // Implementación de Hashable
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    static func == (lhs: SavedLevel, rhs: SavedLevel) -> Bool {
+        lhs.id == rhs.id
+    }
 }
 
-struct SavedScript: Codable, Identifiable {
+struct SavedScript: Codable, Identifiable, Hashable {
     let id: UUID
     var name: String
-    var dialogs: [Dialog]
+    var dialogs: [SavedDialog]
     
-    struct Dialog: Codable {
+    struct SavedDialog: Codable, Hashable {
         var image: String
         var text: String
         var key: String
@@ -78,8 +87,17 @@ struct SavedScript: Codable, Identifiable {
     mutating func update(with scriptView: ScriptView) {
         name = scriptView.scriptName
         dialogs = scriptView.scriptDialogs.map { dialog in
-            Dialog(image: dialog.image, text: dialog.text, key: dialog.key)
+            SavedDialog(image: dialog.image, text: dialog.text, key: dialog.key)
         }
+    }
+    
+    // Implementación de Hashable
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    static func == (lhs: SavedScript, rhs: SavedScript) -> Bool {
+        lhs.id == rhs.id
     }
 }
 
