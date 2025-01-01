@@ -7,7 +7,7 @@ struct AddItemView: View {
     @Binding var placedItems: [PlacedItem]
     @State private var nocollide: Bool = false
     
-    let items = ["chair","fellchair", "table", "box", "trash", "blood", "blood2", "toxic", "xtree-1", "xtree-2", "xtree-3", "xtree-4"]
+    let items = ["chair","fellchair", "table", "box", "trash", "blood", "blood2", "toxic", "xtree-1", "xtree-2", "xtree-3", "xtree-4","microwave","gifts","gift"]
     let columns = Array(repeating: GridItem(.fixed(48), spacing: 8), count: 8) // 8 items por página
     
     var body: some View {
