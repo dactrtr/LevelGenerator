@@ -241,19 +241,8 @@ struct RoomConnectionMapView: View {
             if let level = selectedLevel {
                 NavigationStack {
                     VStack {
-                        MapView(
+                        NodePreviewMapView(
                             placedItems: level.placedItems,
-                            selectedItem: "",
-                            currentX: 0,
-                            currentY: 0,
-                            selectedEnemy: "",
-                            enemyX: 0,
-                            enemyY: 0,
-                            showTriggerPreview: false,
-                            triggerX: 0,
-                            triggerY: 0,
-                            triggerWidth: 0,
-                            triggerHeight: 0,
                             doorTop: level.doors.top,
                             doorRight: level.doors.right,
                             doorDown: level.doors.down,
