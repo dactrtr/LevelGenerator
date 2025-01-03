@@ -229,6 +229,25 @@ struct NodesView: View {
     }
 }
 
+struct ColorLegendItem: View {
+    let icon: String
+    let color: Color
+    let label: String
+    let count: Int
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .foregroundColor(color)
+            Text(label)
+                .foregroundColor(.secondary)
+            Text(": \(count)")
+                .foregroundColor(.secondary)
+        }
+        .font(.caption)
+    }
+}
+
 struct RoomConnectionMapView: View {
     let levels: [SavedLevel]
     @ObservedObject var contentStore: ContentStore
@@ -261,26 +280,66 @@ struct RoomConnectionMapView: View {
         self._nodes = State(initialValue: initialNodes)
     }
     
+    private var colorCounts: (red: Int, blue: Int, green: Int) {
+        var counts = (red: 0, blue: 0, green: 0)
+        for node in nodes {
+            switch node.borderColor {
+            case .red: counts.red += 1
+            case .blue: counts.blue += 1
+            case .green: counts.green += 1
+            default: break
+            }
+        }
+        return counts
+    }
+    
     var body: some View {
-        ScrollView([.horizontal, .vertical]) {
-            ZStack {
-                ConnectionsView(nodes: nodes, nodeSize: nodeSize, levels: levels)
-                NodesView(
-                    nodes: nodes,
-                    nodeSize: nodeSize,
-                    onNodeTap: { node in
-                        selectedNode = node
-                        showingPreview = true
-                    },
-                    onNodeDragged: updateNodePosition,
-                    onNodeColorChanged: updateNodeColor
+        VStack(alignment: .leading, spacing: 8) {
+            // Leyenda de colores
+            HStack(spacing: 16) {
+                ColorLegendItem(
+                    icon: "figure.run",
+                    color: .red,
+                    label: "Power item",
+                    count: colorCounts.red
+                )
+                ColorLegendItem(
+                    icon: "puzzlepiece.extension.fill",
+                    color: .blue,
+                    label: "Puzzle",
+                    count: colorCounts.blue
+                )
+                ColorLegendItem(
+                    icon: "popcorn.fill",
+                    color: .green,
+                    label: "Story",
+                    count: colorCounts.green
                 )
             }
-            .frame(width: 1000, height: 1000)
-        }
-        .background(Color.black.opacity(0.05))
-        .overlay(alignment: .topLeading) {
-            nodeInfoOverlay
+            .padding(.horizontal)
+            .padding(.bottom, 4)
+            
+            // Vista del mapa existente
+            ScrollView([.horizontal, .vertical]) {
+                ZStack {
+                    ConnectionsView(nodes: nodes, nodeSize: nodeSize, levels: levels)
+                    NodesView(
+                        nodes: nodes,
+                        nodeSize: nodeSize,
+                        onNodeTap: { node in
+                            selectedNode = node
+                            showingPreview = true
+                        },
+                        onNodeDragged: updateNodePosition,
+                        onNodeColorChanged: updateNodeColor
+                    )
+                }
+                .frame(width: 1000, height: 1000)
+            }
+            .background(Color.black.opacity(0.05))
+            .overlay(alignment: .topLeading) {
+                nodeInfoOverlay
+            }
         }
         .sheet(isPresented: $showingPreview) {
             if let level = selectedLevel {
