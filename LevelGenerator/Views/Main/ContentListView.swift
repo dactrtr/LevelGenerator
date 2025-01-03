@@ -99,18 +99,5 @@ struct ContentListView: View {
             }
         }
         #endif
-        .sheet(isPresented: $showingConnectionMap) {
-            NavigationStack {
-                RoomConnectionMapView(levels: contentStore.levels, contentStore: contentStore)
-                    .navigationTitle("Room Connections")
-                    .toolbar {
-                        ToolbarItem(placement: .confirmationAction) {
-                            Button("Done") {
-                                showingConnectionMap = false
-                            }
-                        }
-                    }
-            }
-        }
     }
 } 

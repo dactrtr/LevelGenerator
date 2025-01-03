@@ -195,12 +195,15 @@ class ContentStore: ObservableObject {
     struct ExportData: Codable {
         let levels: [SavedLevel]
         let scripts: [SavedScript]
+        let nodeStyles: [NodeStyle]
         let version: String
         
         init(levels: [SavedLevel], scripts: [SavedScript]) {
             self.levels = levels
             self.scripts = scripts
-            self.version = "1.0"  // Movido al inicializador
+            self.nodeStyles = UserDefaults.standard.data(forKey: "nodeStyles")
+                .flatMap { try? JSONDecoder().decode([NodeStyle].self, from: $0) } ?? []
+            self.version = "1.0"
         }
     }
     
@@ -225,6 +228,9 @@ class ContentStore: ObservableObject {
         
         levels = importedData.levels
         scripts = importedData.scripts
+        if let encodedStyles = try? JSONEncoder().encode(importedData.nodeStyles) {
+            UserDefaults.standard.set(encodedStyles, forKey: nodeStylesKey)
+        }
         saveContent()
         return true
     }
@@ -244,6 +250,14 @@ class ContentStore: ObservableObject {
         let existingScriptIds = Set(scripts.map { $0.id })
         let newScripts = importedData.scripts.filter { !existingScriptIds.contains($0.id) }
         scripts.append(contentsOf: newScripts)
+        
+        // Fusionar estilos de nodos
+        let currentStyles = loadNodeStyles()
+        let existingRoomNumbers = Set(currentStyles.map { $0.roomNumber })
+        let newStyles = importedData.nodeStyles.filter { !existingRoomNumbers.contains($0.roomNumber) }
+        if let encodedStyles = try? JSONEncoder().encode(currentStyles + newStyles) {
+            UserDefaults.standard.set(encodedStyles, forKey: nodeStylesKey)
+        }
         
         saveContent()
         return true
