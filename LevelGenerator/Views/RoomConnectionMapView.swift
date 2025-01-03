@@ -198,9 +198,15 @@ struct RoomConnectionMapView: View {
     @State private var nodes: [RoomNode] = []
     @State private var selectedNode: RoomNode?
     @State private var draggedNode: RoomNode?
+    @State private var showingPreview = false
     
     private let nodeSize: CGFloat = 60
     private let spacing: CGFloat = 100
+    
+    var selectedLevel: SavedLevel? {
+        guard let selectedNode = selectedNode else { return nil }
+        return levels.first { $0.roomNumber == selectedNode.room }
+    }
     
     init(levels: [SavedLevel], contentStore: ContentStore) {
         self.levels = levels
@@ -220,6 +226,7 @@ struct RoomConnectionMapView: View {
                     nodeSize: nodeSize,
                     onNodeTap: { node in
                         selectedNode = node
+                        showingPreview = true
                     },
                     onNodeDragged: updateNodePosition
                 )
@@ -230,8 +237,64 @@ struct RoomConnectionMapView: View {
         .overlay(alignment: .topLeading) {
             nodeInfoOverlay
         }
+        .sheet(isPresented: $showingPreview) {
+            if let level = selectedLevel {
+                NavigationStack {
+                    VStack {
+                        MapView(
+                            placedItems: level.placedItems,
+                            selectedItem: "",
+                            currentX: 0,
+                            currentY: 0,
+                            selectedEnemy: "",
+                            enemyX: 0,
+                            enemyY: 0,
+                            showTriggerPreview: false,
+                            triggerX: 0,
+                            triggerY: 0,
+                            triggerWidth: 0,
+                            triggerHeight: 0,
+                            doorTop: level.doors.top,
+                            doorRight: level.doors.right,
+                            doorDown: level.doors.down,
+                            doorLeft: level.doors.left,
+                            doorTopLeadsTo: level.doors.topLeadsTo,
+                            doorRightLeadsTo: level.doors.rightLeadsTo,
+                            doorDownLeadsTo: level.doors.downLeadsTo,
+                            doorLeftLeadsTo: level.doors.leftLeadsTo,
+                            level: level.level
+                        )
+                        .frame(width: 400, height: 240)
+                        .cornerRadius(8)
+                        .shadow(radius: 2)
+                        .padding()
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Room \(level.roomNumber)")
+                                .font(.headline)
+                            Text(level.name)
+                                .font(.subheadline)
+                            Text("Level \(level.level)")
+                                .font(.caption)
+                            if let node = selectedNode {
+                                Text("Connections: \(connectionsList(for: node))")
+                                    .font(.caption)
+                            }
+                        }
+                        .padding()
+                    }
+                    .navigationTitle("Room Preview")
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Done") {
+                                showingPreview = false
+                            }
+                        }
+                    }
+                }
+            }
+        }
         .onDisappear {
-            // Guardar posiciones al cerrar la vista
             let positions = nodes.map { node in
                 ContentStore.NodePosition(
                     roomNumber: node.room,
