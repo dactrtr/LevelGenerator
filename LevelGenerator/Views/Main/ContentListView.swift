@@ -42,14 +42,6 @@ struct ContentListView: View {
                 .onDelete { indexSet in
                     contentStore.deleteLevel(at: indexSet)
                 }
-                
-                Section {
-                    Button {
-                        showingConnectionMap = true
-                    } label: {
-                        Label("View Room Connections", systemImage: "map")
-                    }
-                }
             } else {
                 ForEach(contentStore.scripts.indices, id: \.self) { index in
                     #if os(iOS)

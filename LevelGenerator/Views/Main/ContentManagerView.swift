@@ -10,6 +10,7 @@ struct ContentManagerView: View {
     @State private var importText = ""
     @State private var showingImportAlert = false
     @State private var importAlertMessage = ""
+    @State private var showingConnectionMap = false
     
     var body: some View {
         Group {
@@ -25,6 +26,17 @@ struct ContentManagerView: View {
                 showingImportAlert: $showingImportAlert,
                 importAlertMessage: $importAlertMessage
             )
+            .toolbar {
+                if selectedSection == .levels {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            showingConnectionMap = true
+                        } label: {
+                            Label("View Connections", systemImage: "map")
+                        }
+                    }
+                }
+            }
             #else
             MacContentView(
                 contentStore: contentStore,
@@ -37,8 +49,32 @@ struct ContentManagerView: View {
                 showingImportAlert: $showingImportAlert,
                 importAlertMessage: $importAlertMessage
             )
+            .toolbar {
+                if selectedSection == .levels {
+                    ToolbarItem(placement: .automatic) {
+                        Button {
+                            showingConnectionMap = true
+                        } label: {
+                            Label("View Connections", systemImage: "map")
+                        }
+                    }
+                }
+            }
             #endif
         }
         .preferredColorScheme(.light)
+        .sheet(isPresented: $showingConnectionMap) {
+            NavigationStack {
+                RoomConnectionMapView(levels: contentStore.levels, contentStore: contentStore)
+                    .navigationTitle("Room Connections")
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Done") {
+                                showingConnectionMap = false
+                            }
+                        }
+                    }
+            }
+        }
     }
 } 
