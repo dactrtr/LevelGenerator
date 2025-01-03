@@ -13,7 +13,7 @@ struct ContentManagerView: View {
     @State private var showingConnectionMap = false
     
     var body: some View {
-        Group {
+        NavigationStack {
             #if os(iOS)
             iOSContentView(
                 contentStore: contentStore,
@@ -29,8 +29,9 @@ struct ContentManagerView: View {
             .toolbar {
                 if selectedSection == .levels {
                     ToolbarItem(placement: .primaryAction) {
-                        Button {
-                            showingConnectionMap = true
+                        NavigationLink {
+                            RoomConnectionMapView(levels: contentStore.levels, contentStore: contentStore)
+                                .navigationTitle("Room Connections")
                         } label: {
                             Label("View Connections", systemImage: "map")
                         }
@@ -52,8 +53,9 @@ struct ContentManagerView: View {
             .toolbar {
                 if selectedSection == .levels {
                     ToolbarItem(placement: .automatic) {
-                        Button {
-                            showingConnectionMap = true
+                        NavigationLink {
+                            RoomConnectionMapView(levels: contentStore.levels, contentStore: contentStore)
+                                .navigationTitle("Room Connections")
                         } label: {
                             Label("View Connections", systemImage: "map")
                         }
@@ -63,18 +65,5 @@ struct ContentManagerView: View {
             #endif
         }
         .preferredColorScheme(.light)
-        .sheet(isPresented: $showingConnectionMap) {
-            NavigationStack {
-                RoomConnectionMapView(levels: contentStore.levels, contentStore: contentStore)
-                    .navigationTitle("Room Connections")
-                    .toolbar {
-                        ToolbarItem(placement: .confirmationAction) {
-                            Button("Done") {
-                                showingConnectionMap = false
-                            }
-                        }
-                    }
-            }
-        }
     }
 } 

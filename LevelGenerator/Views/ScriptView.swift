@@ -8,7 +8,7 @@ struct ScriptView: View {
     @State private var currentName: String
     @State private var dialogs: [(image: String, text: String, key: String)]
     
-    let availableImages = ["player", "playerWorry", "playerSurprise", "radio", "radiopocket", "radioring", "notes", "playerHappy"]
+    let availableImages = ["player", "playerWorry", "playerSurprise", "radio", "radiopocket", "radioring", "notes", "playerHappy", "playerAngry"]
     
     // Propiedades públicas para SavedScript
     var scriptName: String { currentName }
