@@ -12,7 +12,8 @@ struct LevelEditorView: View, LevelEditorState {
     
     @State private var currentX: Double = 200
     @State private var currentY: Double = 120
-    @State private var selectedItem: String = "chair"
+    @State private var selectedProp: String = "chair"
+    @State private var selectedGameItem: String = "notes"
     
     @State private var enemyX: Double = 200
     @State private var enemyY: Double = 120
@@ -65,7 +66,8 @@ struct LevelEditorView: View, LevelEditorState {
                 VStack {
                     MapView(
                         placedItems: placedItems,
-                        selectedItem: selectedItem,
+                        selectedProp: selectedProp,
+                        selectedGameItem: selectedGameItem,
                         currentX: currentX,
                         currentY: currentY,
                         selectedEnemy: selectedEnemy,
@@ -145,7 +147,8 @@ struct LevelEditorView: View, LevelEditorState {
             
             // Right Panel - Controls
             UnifiedControlView(
-                selectedItem: $selectedItem,
+                selectedProp: $selectedProp,
+                selectedGameItem: $selectedGameItem,
                 selectedEnemy: $selectedEnemy,
                 currentX: $currentX,
                 currentY: $currentY,

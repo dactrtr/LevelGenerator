@@ -8,7 +8,8 @@ enum ControlMode: String, CaseIterable {
 }
 
 struct UnifiedControlView: View {
-    @Binding var selectedItem: String
+    @Binding var selectedProp: String
+    @Binding var selectedGameItem: String
     @Binding var selectedEnemy: String
     @Binding var currentX: Double
     @Binding var currentY: Double
@@ -40,7 +41,7 @@ struct UnifiedControlView: View {
             case .props:
                 VStack(spacing: 0) {
                     AddPropView(
-                        selectedProp: $selectedItem,
+                        selectedProp: $selectedProp,
                         currentX: $currentX,
                         currentY: $currentY,
                         placedItems: $placedItems
@@ -53,7 +54,7 @@ struct UnifiedControlView: View {
             case .items:
                 VStack(spacing: 0) {
                     AddItemView(
-                        selectedItem: $selectedItem,
+                        selectedItem: $selectedGameItem,
                         currentX: $currentX,
                         currentY: $currentY,
                         placedItems: $placedItems

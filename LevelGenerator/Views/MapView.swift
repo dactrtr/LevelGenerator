@@ -2,7 +2,8 @@ import SwiftUI
 
 struct MapView: View {
     let placedItems: [PlacedItem]
-    let selectedItem: String
+    let selectedProp: String
+    let selectedGameItem: String
     let currentX: Double
     let currentY: Double
     let selectedEnemy: String
@@ -58,16 +59,26 @@ struct MapView: View {
             }
             
             if !showTriggerPreview {
-                Image(selectedItem)
-                    .resizable()
-                    .frame(width: selectedMode == .props ? 32 : 48, height: selectedMode == .props ? 32 : 48)
-                    .position(x: currentX, y: currentY)
-                
-                Image(selectedEnemy)
-                    .resizable()
-                    .frame(width: selectedEnemy == "frogcolli" ? 40 : 32,
-                           height: selectedEnemy == "frogcolli" ? 40 : 32)
-                    .position(x: enemyX, y: enemyY)
+                if selectedMode == .props {
+                    Image(selectedProp)
+                        .resizable()
+                        .frame(width: 32, height: 32)
+                        .position(x: currentX, y: currentY)
+                        .opacity(0.6)
+                } else if selectedMode == .items {
+                    Image(selectedGameItem)
+                        .resizable()
+                        .frame(width: 48, height: 48)
+                        .position(x: currentX, y: currentY)
+                        .opacity(0.6)
+                } else if selectedMode == .enemies {
+                    Image(selectedEnemy)
+                        .resizable()
+                        .frame(width: selectedEnemy == "frogcolli" ? 40 : 32,
+                               height: selectedEnemy == "frogcolli" ? 40 : 32)
+                        .position(x: enemyX, y: enemyY)
+                        .opacity(0.6)
+                }
             }
             
             if showTriggerPreview {
