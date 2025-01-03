@@ -7,6 +7,7 @@ struct RoomNode: Identifiable {
     let name: String
     var position: CGPoint
     var connections: Set<Int>
+    var borderColor: Color = .clear  // Color por defecto
 }
 
 struct ConnectionLine: View {
@@ -91,6 +92,7 @@ struct RoomNodeView: View {
     let size: CGFloat
     let onTap: () -> Void
     let onDragChanged: (CGPoint) -> Void
+    let onColorChanged: (Color) -> Void
     
     var body: some View {
         VStack {
@@ -104,7 +106,10 @@ struct RoomNodeView: View {
         .frame(width: size, height: size)
         .background(Color.white)
         .cornerRadius(10)
-        .shadow(radius: 2)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(node.borderColor, lineWidth: 3)
+        )
         .position(node.position)
         .gesture(
             DragGesture()
@@ -113,6 +118,34 @@ struct RoomNodeView: View {
                 }
         )
         .onTapGesture(perform: onTap)
+        .contextMenu {
+            Button {
+                onColorChanged(.red)
+            } label: {
+                Label("Red Border", systemImage: "circle.fill")
+                    .foregroundColor(.red)
+            }
+            
+            Button {
+                onColorChanged(.blue)
+            } label: {
+                Label("Blue Border", systemImage: "circle.fill")
+                    .foregroundColor(.blue)
+            }
+            
+            Button {
+                onColorChanged(.green)
+            } label: {
+                Label("Green Border", systemImage: "circle.fill")
+                    .foregroundColor(.green)
+            }
+            
+            Button {
+                onColorChanged(.clear)
+            } label: {
+                Label("No Border", systemImage: "circle.slash")
+            }
+        }
     }
 }
 
@@ -177,6 +210,7 @@ struct NodesView: View {
     let nodeSize: CGFloat
     let onNodeTap: (RoomNode) -> Void
     let onNodeDragged: (RoomNode, CGPoint) -> Void
+    let onNodeColorChanged: (RoomNode, Color) -> Void
     
     var body: some View {
         ForEach(nodes) { node in
@@ -186,6 +220,9 @@ struct NodesView: View {
                 onTap: { onNodeTap(node) },
                 onDragChanged: { newPosition in
                     onNodeDragged(node, newPosition)
+                },
+                onColorChanged: { color in
+                    onNodeColorChanged(node, color)
                 }
             )
         }
@@ -211,10 +248,17 @@ struct RoomConnectionMapView: View {
     init(levels: [SavedLevel], contentStore: ContentStore) {
         self.levels = levels
         self.contentStore = contentStore
-        self._nodes = State(initialValue: Self.createInitialNodes(
+        
+        // Crear nodos con posiciones y estilos guardados
+        let savedPositions = contentStore.loadNodePositions()
+        let savedStyles = contentStore.loadNodeStyles()
+        
+        let initialNodes = Self.createInitialNodes(
             from: levels,
-            savedPositions: contentStore.loadNodePositions()
-        ))
+            savedPositions: savedPositions,
+            savedStyles: savedStyles
+        )
+        self._nodes = State(initialValue: initialNodes)
     }
     
     var body: some View {
@@ -228,7 +272,8 @@ struct RoomConnectionMapView: View {
                         selectedNode = node
                         showingPreview = true
                     },
-                    onNodeDragged: updateNodePosition
+                    onNodeDragged: updateNodePosition,
+                    onNodeColorChanged: updateNodeColor
                 )
             }
             .frame(width: 1000, height: 1000)
@@ -253,25 +298,26 @@ struct RoomConnectionMapView: View {
                             doorLeftLeadsTo: level.doors.leftLeadsTo,
                             level: level.level
                         )
-                        .frame(width: 400, height: 240)
+                        .frame(width: 600, height: 360)  // Tamaño aumentado
                         .cornerRadius(8)
                         .shadow(radius: 2)
                         .padding()
                         
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Room \(level.roomNumber)")
-                                .font(.headline)
+                                .font(.title)
                             Text(level.name)
-                                .font(.subheadline)
+                                .font(.title3)
                             Text("Level \(level.level)")
-                                .font(.caption)
+                                .font(.headline)
                             if let node = selectedNode {
                                 Text("Connections: \(connectionsList(for: node))")
-                                    .font(.caption)
+                                    .font(.subheadline)
                             }
                         }
                         .padding()
                     }
+                    .frame(minWidth: 700, minHeight: 500)  // Tamaño mínimo del sheet
                     .navigationTitle("Room Preview")
                     .toolbar {
                         ToolbarItem(placement: .confirmationAction) {
@@ -298,6 +344,17 @@ struct RoomConnectionMapView: View {
     private func updateNodePosition(_ node: RoomNode, _ newPosition: CGPoint) {
         if let index = nodes.firstIndex(where: { $0.id == node.id }) {
             nodes[index].position = newPosition
+        }
+    }
+    
+    private func updateNodeColor(_ node: RoomNode, _ color: Color) {
+        if let index = nodes.firstIndex(where: { $0.id == node.id }) {
+            var updatedNode = nodes[index]
+            updatedNode.borderColor = color
+            nodes[index] = updatedNode
+            
+            // Guardar los estilos actualizados
+            contentStore.saveNodeStyles(nodes)
         }
     }
     
@@ -331,7 +388,8 @@ struct RoomConnectionMapView: View {
     
     private static func createInitialNodes(
         from levels: [SavedLevel],
-        savedPositions: [ContentStore.NodePosition]
+        savedPositions: [ContentStore.NodePosition],
+        savedStyles: [ContentStore.NodeStyle]
     ) -> [RoomNode] {
         var nodes: [RoomNode] = []
         var positions: [Int: CGPoint] = [:]
@@ -343,9 +401,11 @@ struct RoomConnectionMapView: View {
             positions[position.roomNumber] = CGPoint(x: position.x, y: position.y)
         }
         
+        // Crear diccionario de colores guardados
+        let styles = Dictionary(uniqueKeysWithValues: savedStyles.map { ($0.roomNumber, stringToColor($0.borderColor)) })
+        
         for level in levels {
-            let connections = getConnections(for: level)
-            let position = getPosition(
+            let position = positions[level.roomNumber] ?? getPosition(
                 for: level.roomNumber,
                 in: &positions,
                 nodeCount: nodes.count,
@@ -359,11 +419,21 @@ struct RoomConnectionMapView: View {
                 room: level.roomNumber,
                 name: level.name,
                 position: position,
-                connections: connections
+                connections: getConnections(for: level),
+                borderColor: styles[level.roomNumber] ?? .clear
             ))
         }
         
         return nodes
+    }
+    
+    private static func stringToColor(_ string: String) -> Color {
+        switch string {
+        case "red": return .red
+        case "blue": return .blue
+        case "green": return .green
+        default: return .clear
+        }
     }
     
     private static func getConnections(for level: SavedLevel) -> Set<Int> {

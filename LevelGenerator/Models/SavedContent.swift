@@ -332,4 +332,42 @@ extension ContentStore {
         }
         return positions
     }
+}
+
+extension ContentStore {
+    struct NodeStyle: Codable {
+        let roomNumber: Int
+        let borderColor: String  // Guardamos el color como string
+    }
+    
+    private var nodeStylesKey: String { "nodeStyles" }
+    
+    func saveNodeStyles(_ nodes: [RoomNode]) {
+        let styles = nodes.map { node in
+            NodeStyle(
+                roomNumber: node.room,
+                borderColor: colorToString(node.borderColor)
+            )
+        }
+        if let encoded = try? JSONEncoder().encode(styles) {
+            UserDefaults.standard.set(encoded, forKey: nodeStylesKey)
+        }
+    }
+    
+    func loadNodeStyles() -> [NodeStyle] {
+        guard let data = UserDefaults.standard.data(forKey: nodeStylesKey),
+              let styles = try? JSONDecoder().decode([NodeStyle].self, from: data) else {
+            return []
+        }
+        return styles
+    }
+    
+    private func colorToString(_ color: Color) -> String {
+        switch color {
+        case .red: return "red"
+        case .blue: return "blue"
+        case .green: return "green"
+        default: return "clear"
+        }
+    }
 } 
