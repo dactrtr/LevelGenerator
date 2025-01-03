@@ -2,6 +2,7 @@ import SwiftUI
 
 enum ControlMode: String, CaseIterable {
     case props = "Props"
+    case items = "Items"
     case enemies = "Enemies"
     case triggers = "Triggers"
 }
@@ -48,6 +49,19 @@ struct UnifiedControlView: View {
                     Divider()
                     
                     PropListView(placedItems: $placedItems)
+                }
+            case .items:
+                VStack(spacing: 0) {
+                    AddItemView(
+                        selectedItem: $selectedItem,
+                        currentX: $currentX,
+                        currentY: $currentY,
+                        placedItems: $placedItems
+                    )
+                    
+                    Divider()
+                    
+                    ItemListView(placedItems: $placedItems)
                 }
             case .enemies:
                 VStack(spacing: 0) {

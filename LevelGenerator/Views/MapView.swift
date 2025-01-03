@@ -22,6 +22,7 @@ struct MapView: View {
     let doorDownLeadsTo: Int
     let doorLeftLeadsTo: Int
     let level: Int
+    let selectedMode: ControlMode
     
     var body: some View {
         ZStack {
@@ -43,7 +44,7 @@ struct MapView: View {
                         if !showTriggerPreview {
                             ZStack {
                                 Circle()
-                                    .fill(item.itemType == .prop ? Color.green : Color.red)
+                                    .fill(getItemColor(for: item.itemType))
                                     .frame(width: 16, height: 16)
                                 Text("\(placedItems.prefix(index + 1).filter { $0.itemType == item.itemType }.count)")
                                     .foregroundColor(.white)
@@ -59,7 +60,7 @@ struct MapView: View {
             if !showTriggerPreview {
                 Image(selectedItem)
                     .resizable()
-                    .frame(width: 32, height: 32)
+                    .frame(width: selectedMode == .props ? 32 : 48, height: selectedMode == .props ? 32 : 48)
                     .position(x: currentX, y: currentY)
                 
                 Image(selectedEnemy)
@@ -71,7 +72,7 @@ struct MapView: View {
             
             if showTriggerPreview {
                 Rectangle()
-                    .stroke(Color.purple.opacity(0.5), lineWidth: 1)
+                    .stroke(Color.purple.opacity(0.5), lineWidth: 3)
                     .frame(width: triggerWidth, height: triggerHeight)
                     .position(x: triggerX, y: triggerY)
             }
@@ -81,7 +82,7 @@ struct MapView: View {
                     ZStack {
                         Rectangle()
                             .fill(Color.purple.opacity(0.2))
-                            .frame(width: item.width ?? 60, height: item.height ?? 30)
+                            .frame(width:  48, height:  48)
                             .overlay(
                                 Rectangle()
                                     .stroke(Color.purple, lineWidth: 1)
@@ -160,5 +161,18 @@ struct MapView: View {
         .frame(width: 400, height: 240)
         .background(Color.white)
         .clipped()
+    }
+    
+    private func getItemColor(for itemType: ItemType) -> Color {
+        switch itemType {
+        case .prop:
+            return .green
+        case .enemy:
+            return .red
+        case .item:
+            return .purple
+        case .trigger:
+            return .purple
+        }
     }
 } 

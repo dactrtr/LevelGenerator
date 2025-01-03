@@ -39,11 +39,15 @@ public struct PlacedItem: Codable, Identifiable {
     }
     
     public var size: CGFloat {
-        switch type {
-        case "frogcolli":
-            return 40
-        default:
+        switch itemType {
+        case .prop:
             return 32
+        case .enemy:
+            return type == "frogcolli" ? 40 : 32
+        case .item:
+            return 48
+        case .trigger:
+            return width ?? 48
         }
     }
     
@@ -60,4 +64,5 @@ public enum ItemType: Codable {
     case prop
     case enemy
     case trigger
+    case item
 } 

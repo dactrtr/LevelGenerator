@@ -84,7 +84,8 @@ struct LevelEditorView: View, LevelEditorState {
                         doorRightLeadsTo: doorRightLeadsTo,
                         doorDownLeadsTo: doorDownLeadsTo,
                         doorLeftLeadsTo: doorLeftLeadsTo,
-                        level: currentLevel
+                        level: currentLevel,
+                        selectedMode: selectedMode
                     )
                     .overlay(
                         Rectangle()

@@ -66,6 +66,7 @@ struct JsonPreviewView: View {
         let propItems = placedItems.filter { $0.itemType == .prop }
         let enemyItems = placedItems.filter { $0.itemType == .enemy }
         let triggerItems = placedItems.filter { $0.itemType == .trigger }
+        let gameItems = placedItems.filter { $0.itemType == .item }
         
         let propsJson = propItems.map { item in
             """
@@ -97,6 +98,16 @@ struct JsonPreviewView: View {
                         width = \(Int(item.width ?? 60)),
                         height = \(Int(item.height ?? 30)),
                         script = "\(item.script ?? "")"\(item.triggerType == "cutscene" ? ",\n            type = \"cutscene\"" : "")
+                    }
+            """
+        }.joined(separator: ",\n")
+        
+        let itemsJson = gameItems.map { item in
+            """
+                    {
+                        type = '\(item.type)',
+                        x = \(Int(item.x)),
+                        y = \(Int(item.y))
                     }
             """
         }.joined(separator: ",\n")
@@ -137,7 +148,9 @@ struct JsonPreviewView: View {
                         name = "intro-comic",
                         play = "enter"
                 },
-                items = {},
+                items = {
+        \(itemsJson)
+                },
                 triggers = {
         \(triggersJson)
                 },
