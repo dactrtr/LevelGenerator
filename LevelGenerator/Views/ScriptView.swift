@@ -33,7 +33,6 @@ struct ScriptView: View {
         """
         {
             name = "\(currentName)",
-            -- trigger \(currentName)
             dialog = {
                 \(dialogs.map { dialog in
                     """

@@ -121,7 +121,6 @@ struct JsonPreviewView: View {
         .joined(separator: ",\n")
         
         return """
-        --\(floorNumber)
         {
             floor = {
                 level = \(level),
