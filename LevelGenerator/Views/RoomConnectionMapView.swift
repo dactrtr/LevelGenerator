@@ -122,21 +122,21 @@ struct RoomNodeView: View {
             Button {
                 onColorChanged(.red)
             } label: {
-                Label("Red Border", systemImage: "circle.fill")
+                Label("Power item", systemImage: "figure.run")
                     .foregroundColor(.red)
             }
             
             Button {
                 onColorChanged(.blue)
             } label: {
-                Label("Blue Border", systemImage: "circle.fill")
+                Label("Puzzle", systemImage: "puzzlepiece.extension.fill")
                     .foregroundColor(.blue)
             }
             
             Button {
                 onColorChanged(.green)
             } label: {
-                Label("Green Border", systemImage: "circle.fill")
+                Label("Story", systemImage: "popcorn.fill")
                     .foregroundColor(.green)
             }
             
