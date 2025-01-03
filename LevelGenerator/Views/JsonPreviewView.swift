@@ -63,11 +63,11 @@ struct JsonPreviewView: View {
     }
     
     private func generateJson() -> String {
-        let furnitureItems = placedItems.filter { $0.itemType == .furniture }
+        let propItems = placedItems.filter { $0.itemType == .prop }
         let enemyItems = placedItems.filter { $0.itemType == .enemy }
         let triggerItems = placedItems.filter { $0.itemType == .trigger }
         
-        let furnitureJson = furnitureItems.map { item in
+        let propsJson = propItems.map { item in
             """
                     {
                         type = "\(item.type)",
@@ -145,7 +145,7 @@ struct JsonPreviewView: View {
         \(enemiesJson)
                 },
                 props = {
-        \(furnitureJson)
+        \(propsJson)
                 }
             }
         }

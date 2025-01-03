@@ -30,7 +30,7 @@ public struct PlacedItem: Codable, Identifiable {
         self.x = x
         self.y = y
         self.itemType = itemType
-        self.nocollide = itemType == .furniture ? nocollide : false
+        self.nocollide = itemType == .prop ? nocollide : false
         self.speed = speed
         self.width = width
         self.height = height
@@ -57,7 +57,7 @@ public struct PlacedItem: Codable, Identifiable {
 }
 
 public enum ItemType: Codable {
-    case furniture
+    case prop
     case enemy
     case trigger
 } 

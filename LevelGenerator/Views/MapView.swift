@@ -43,7 +43,7 @@ struct MapView: View {
                         if !showTriggerPreview {
                             ZStack {
                                 Circle()
-                                    .fill(item.itemType == .furniture ? Color.green : Color.red)
+                                    .fill(item.itemType == .prop ? Color.green : Color.red)
                                     .frame(width: 16, height: 16)
                                 Text("\(placedItems.prefix(index + 1).filter { $0.itemType == item.itemType }.count)")
                                     .foregroundColor(.white)

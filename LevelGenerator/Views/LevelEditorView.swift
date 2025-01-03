@@ -24,7 +24,7 @@ struct LevelEditorView: View, LevelEditorState {
     
     @State internal var placedItems: [PlacedItem]
     
-    @State private var selectedMode: ControlMode = .items
+    @State private var selectedMode: ControlMode = .props
     
     @State private var triggerWidth: Double = 60
     @State private var triggerHeight: Double = 30
