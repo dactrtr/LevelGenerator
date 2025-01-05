@@ -6,7 +6,7 @@ struct AddItemView: View {
     @Binding var currentY: Double
     @Binding var placedItems: [PlacedItem]
     
-    let items = ["notes", "radio", "lamp", "keycard"] // Items disponibles
+    let items = ["notes", "radio", "lamp", "keycard", "crewmember"] // Items disponibles
     let columns = Array(repeating: GridItem(.fixed(48), spacing: 8), count: 8)
     
     var body: some View {
