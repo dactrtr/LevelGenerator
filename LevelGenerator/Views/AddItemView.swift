@@ -5,8 +5,9 @@ struct AddItemView: View {
     @Binding var currentX: Double
     @Binding var currentY: Double
     @Binding var placedItems: [PlacedItem]
+    @State private var crewId: String = ""
     
-    let items = ["notes", "radio", "lamp", "keycard", "crewmember"] // Items disponibles
+    let items = ["notes", "radio", "lamp", "keycard", "crewmember"]
     let columns = Array(repeating: GridItem(.fixed(48), spacing: 8), count: 8)
     
     var body: some View {
@@ -16,6 +17,9 @@ struct AddItemView: View {
                     ForEach(items, id: \.self) { item in
                         Button {
                             selectedItem = item
+                            if item != "crewmember" {
+                                crewId = ""
+                            }
                         } label: {
                             Image(item)
                                 .resizable()
@@ -35,13 +39,21 @@ struct AddItemView: View {
             .frame(maxWidth: .infinity)
             .scrollTargetBehavior(.paging)
             
+            if selectedItem == "crewmember" {
+                TextField("Crew ID", text: $crewId)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.footnote)
+            }
+            
             Button {
                 placedItems.append(
                     PlacedItem(
                         type: selectedItem,
                         x: currentX,
                         y: currentY,
-                        itemType: .item
+                        itemType: .item,
+                        taken: selectedItem == "crewmember" ? false : nil,
+                        crewId: selectedItem == "crewmember" ? crewId : nil
                     )
                 )
             } label: {
@@ -53,6 +65,7 @@ struct AddItemView: View {
             .buttonStyle(.borderedProminent)
             .tint(.purple)
             .controlSize(.small)
+            .disabled(selectedItem == "crewmember" && crewId.isEmpty)
             
             ControlGrid(x: $currentX, y: $currentY, width: 400, height: 240)
                 .frame(height: 120)

@@ -107,7 +107,7 @@ struct JsonPreviewView: View {
                     {
                         type = '\(item.type)',
                         x = \(Int(item.x)),
-                        y = \(Int(item.y))
+                        y = \(Int(item.y))\(item.type == "crewmember" ? ",\n                taken = false" : "")\(item.crewId != nil ? ",\n                crewId = \"\(item.crewId!)\"" : "")
                     }
             """
         }.joined(separator: ",\n")
