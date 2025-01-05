@@ -370,6 +370,9 @@ struct RoomConnectionMapView: View {
                             Text("Level \(level.level)")
                                 .font(.headline)
                             if let node = selectedNode {
+                                Text("Crew Members: \(crewmemberCount(for: node))")
+                                    .font(.subheadline)
+                                    .foregroundColor(.purple)
                                 Text("Connections: \(connectionsList(for: node))")
                                     .font(.subheadline)
                             }
@@ -427,6 +430,9 @@ struct RoomConnectionMapView: View {
                         .font(.subheadline)
                     Text("Level \(node.level)")
                         .font(.caption)
+                    Text("Crew Members: \(crewmemberCount(for: node))")
+                        .font(.caption)
+                        .foregroundColor(.purple)
                     Text("Connections: \(connectionsList(for: node))")
                         .font(.caption)
                 }
@@ -528,5 +534,12 @@ struct RoomConnectionMapView: View {
         )
         positions[roomNumber] = position
         return position
+    }
+    
+    private func crewmemberCount(for node: RoomNode) -> Int {
+        if let level = levels.first(where: { $0.roomNumber == node.room }) {
+            return level.placedItems.filter { $0.itemType == .item && $0.type == "crewmember" }.count
+        }
+        return 0
     }
 } 

@@ -73,7 +73,7 @@ struct JsonPreviewView: View {
                     {
                         type = "\(item.type)",
                         x = \(Int(item.x)),
-                        y = \(Int(item.y))\(item.nocollide ? ",\n            nocollide = true" : "")
+                        y = \(Int(item.y))\(item.nocollide ? ",\n                    nocollide = true" : "")
                     }
             """
         }.joined(separator: ",\n")
@@ -97,7 +97,7 @@ struct JsonPreviewView: View {
                         y = \(Int(item.y)),
                         width = \(Int(item.width ?? 60)),
                         height = \(Int(item.height ?? 30)),
-                        script = "\(item.script ?? "")"\(item.triggerType == "cutscene" ? ",\n            type = \"cutscene\"" : "")
+                        script = "\(item.script ?? "")"\(item.triggerType == "cutscene" ? ",\n                    type = \"cutscene\"" : "")
                     }
             """
         }.joined(separator: ",\n")
@@ -107,12 +107,11 @@ struct JsonPreviewView: View {
                     {
                         type = '\(item.type)',
                         x = \(Int(item.x)),
-                        y = \(Int(item.y))\(item.type == "crewmember" ? ",\n                taken = false" : "")\(item.crewId != nil ? ",\n                crewId = \"\(item.crewId!)\"" : "")
+                        y = \(Int(item.y))\(item.type == "crewmember" ? ",\n                    taken = false" : "")\(item.crewId != nil ? ",\n                    crewId = \"\(item.crewId!)\"" : "")
                     }
             """
         }.joined(separator: ",\n")
         
-        // Generar el JSON de las puertas
         let doorsJson = [
             (direction: "top", isOpen: doorTop, leadsTo: doorTopLeadsTo),
             (direction: "right", isOpen: doorRight, leadsTo: doorRightLeadsTo),
