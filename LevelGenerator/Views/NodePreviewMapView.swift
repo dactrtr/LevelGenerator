@@ -22,7 +22,7 @@ struct NodePreviewMapView: View {
                 .stroke(Color.gray, lineWidth: 2)
                 .frame(width: 400, height: 240)
             
-            // Items y enemigos sin números
+            // Items y enemigos
             ForEach(placedItems) { item in
                 if item.itemType != .trigger {
                     Image(item.type)
@@ -32,17 +32,30 @@ struct NodePreviewMapView: View {
                 }
             }
             
-            // Triggers
+            // Triggers con su tamaño real
             ForEach(placedItems) { item in
                 if item.itemType == .trigger {
-                    Rectangle()
-                        .fill(Color.purple.opacity(0.2))
-                        .frame(width: item.width ?? 60, height: item.height ?? 30)
-                        .overlay(
-                            Rectangle()
-                                .stroke(Color.purple, lineWidth: 1)
-                        )
-                        .position(x: item.x, y: item.y)
+                    ZStack {
+                        Rectangle()
+                            .fill(Color.purple.opacity(0.2))
+                            .frame(width: item.width ?? 60, height: item.height ?? 30)
+                            .overlay(
+                                Rectangle()
+                                    .stroke(Color.purple, lineWidth: 1)
+                            )
+                        
+                        // Número del trigger
+                        ZStack {
+                            Circle()
+                                .fill(Color.purple)
+                                .frame(width: 16, height: 16)
+                            Text("\(placedItems.prefix(through: placedItems.firstIndex(where: { $0.id == item.id })!).filter { $0.itemType == .trigger }.count)")
+                                .foregroundColor(.white)
+                                .font(.system(size: 10, weight: .bold))
+                        }
+                        .offset(x: (item.width ?? 60)/2 - 8, y: -(item.height ?? 30)/2 + 8)
+                    }
+                    .position(x: item.x, y: item.y)
                 }
             }
             

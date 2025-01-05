@@ -93,7 +93,7 @@ struct MapView: View {
                     ZStack {
                         Rectangle()
                             .fill(Color.purple.opacity(0.2))
-                            .frame(width:  48, height:  48)
+                            .frame(width: item.width ?? 60, height: item.height ?? 30)
                             .overlay(
                                 Rectangle()
                                     .stroke(Color.purple, lineWidth: 1)
@@ -107,6 +107,7 @@ struct MapView: View {
                                 .foregroundColor(.white)
                                 .font(.system(size: 10, weight: .bold))
                         }
+                        .offset(x: (item.width ?? 60)/2 - 8, y: -(item.height ?? 30)/2 + 8)
                     }
                     .position(x: item.x, y: item.y)
                 }
