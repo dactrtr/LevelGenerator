@@ -7,7 +7,7 @@ struct AddPropView: View {
     @Binding var placedItems: [PlacedItem]
     @State private var nocollide: Bool = false
     
-    let props = ["chair","fellchair","deadrat", "table","fellTable", "box", "trash", "blood", "blood2", "toxic", "xtree-1", "xtree-2", "xtree-3", "xtree-4","microwave","gifts","gift", "smallTable"]
+    let props = ["chair","fellchair","deadrat", "table","fellTable", "box", "trash", "blood", "blood2", "toxic", "xtree-1", "xtree-2", "xtree-3", "xtree-4","microwave","gifts","gift", "smallTable", "fridge1", "fridge2", "kitchenStorage","knifeKettle","pot"]
     let columns = Array(repeating: GridItem(.fixed(48), spacing: 8), count: 8)
     
     var body: some View {
