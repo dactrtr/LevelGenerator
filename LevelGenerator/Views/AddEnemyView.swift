@@ -52,6 +52,7 @@ struct AddEnemyView: View {
             
             // Add Button
             Button {
+                let idToUse = enemyId.isEmpty ? UUID().uuidString : enemyId
                 placedItems.append(
                     PlacedItem(
                         type: selectedEnemy,
@@ -59,7 +60,7 @@ struct AddEnemyView: View {
                         y: enemyY,
                         itemType: .enemy,
                         speed: enemySpeed,
-                        enemyId: enemyId
+                        enemyId: idToUse
                     )
                 )
             } label: {
