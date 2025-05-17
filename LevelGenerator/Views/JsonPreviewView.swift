@@ -50,7 +50,7 @@ struct JsonPreviewView: View {
                 }) {
                     HStack {
                         Image(systemName: "doc.on.doc")
-                        Text("Copy JSON")
+                        Text("Copy level")
                     }
                     .foregroundColor(.blue)
                 }
@@ -84,7 +84,8 @@ struct JsonPreviewView: View {
                         name = "\(item.type)",
                         x = \(Int(item.x)),
                         y = \(Int(item.y)),
-                        speed = \(item.speed ?? 1.0)
+                        speed = \(item.speed ?? 1.0),
+                        Id = \"\(item.enemyId!)\"
                     }
             """
         }.joined(separator: ",\n")
@@ -107,7 +108,7 @@ struct JsonPreviewView: View {
                     {
                         type = '\(item.type)',
                         x = \(Int(item.x)),
-                        y = \(Int(item.y))\(item.type == "crewmember" ? ",\n                    taken = false" : "")\(item.crewId != nil ? ",\n                    crewId = \"\(item.crewId!)\"" : "")
+                        y = \(Int(item.y))\(item.type == "crewmember" ? ",\n  taken = false" : "")\(item.crewId != nil ? ",\n  crewId = \"\(item.crewId!)\"" : "")
                     }
             """
         }.joined(separator: ",\n")
@@ -173,4 +174,4 @@ struct JsonPreviewView: View {
         #endif
         showCopiedAlert = true
     }
-} 
+}

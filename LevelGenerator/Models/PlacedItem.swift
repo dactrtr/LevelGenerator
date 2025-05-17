@@ -14,6 +14,7 @@ public struct PlacedItem: Codable, Identifiable {
     public let triggerType: String?
     public let taken: Bool?
     public let crewId: String?
+    public let enemyId: String?
     
     public init(
         type: String,
@@ -27,7 +28,8 @@ public struct PlacedItem: Codable, Identifiable {
         script: String? = nil,
         triggerType: String? = nil,
         taken: Bool? = nil,
-        crewId: String? = nil
+        crewId: String? = nil,
+        enemyId: String? = nil
     ) {
         self.id = UUID()
         self.type = type
@@ -42,6 +44,7 @@ public struct PlacedItem: Codable, Identifiable {
         self.triggerType = triggerType
         self.taken = taken
         self.crewId = crewId
+        self.enemyId = enemyId
     }
     
     public var size: CGFloat {

@@ -5,6 +5,7 @@ struct AddEnemyView: View {
     @Binding var enemyX: Double
     @Binding var enemyY: Double
     @Binding var enemySpeed: Double
+    @State private var enemyId: String = ""
     @Binding var placedItems: [PlacedItem]
     
     let enemies = ["brocorat", "frogcolli"]
@@ -44,6 +45,9 @@ struct AddEnemyView: View {
                     .foregroundStyle(.secondary)
                 Slider(value: $enemySpeed, in: 0.5...2.0)
                     .tint(.red)
+                TextField("enemyID", text: $enemyId)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.footnote)
             }
             
             // Add Button
@@ -54,7 +58,8 @@ struct AddEnemyView: View {
                         x: enemyX,
                         y: enemyY,
                         itemType: .enemy,
-                        speed: enemySpeed
+                        speed: enemySpeed,
+                        enemyId: enemyId
                     )
                 )
             } label: {

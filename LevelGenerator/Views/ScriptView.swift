@@ -141,7 +141,7 @@ struct ScriptView: View {
                     TextEditor(text: Binding(
                         get: { currentDialog },
                         set: { newValue in
-                            if newValue.count <= 99 {
+                            if newValue.count <= 94 {
                                 currentDialog = newValue
                             }
                         }
@@ -152,7 +152,7 @@ struct ScriptView: View {
                             Spacer()
                             HStack {
                                 Spacer()
-                                Text("\(currentDialog.count)/99")
+                                Text("\(currentDialog.count)/94")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                     .padding(4)
