@@ -85,7 +85,7 @@ struct JsonPreviewView: View {
                         x = \(Int(item.x)),
                         y = \(Int(item.y)),
                         speed = \(item.speed ?? 1.0),
-                        Id = \"\(item.enemyId!)\"
+                        id = \"\(item.enemyId!)\"
                     }
             """
         }.joined(separator: ",\n")

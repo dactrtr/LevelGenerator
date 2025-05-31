@@ -8,7 +8,7 @@ struct ScriptView: View {
     @State private var currentName: String
     @State private var dialogs: [(image: String, text: String, key: String)]
     
-    let availableImages = ["player", "playerWorry", "playerSurprise", "radioHand", "radioPocket", "radioRing", "notesHand", "playerHappy", "playerAngry","playerSleepy"]
+    let availableImages = ["player", "playerWorry", "playerSurprise", "radioHand", "radioPocket", "radioRing", "notesHand", "playerHappy", "playerAngry","playerSleepy","playerCry"]
     
     // Propiedades públicas para SavedScript
     var scriptName: String { currentName }
@@ -38,7 +38,7 @@ struct ScriptView: View {
                     """
                     {
                         video = '\(dialog.image)',
-                        text = Graphics.getLocalizedText("\(dialog.key)", "en"),
+                        text = "\(dialog.key)",
                     }
                     """
                 }.joined(separator: ",\n                "))
