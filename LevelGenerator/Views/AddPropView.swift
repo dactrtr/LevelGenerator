@@ -5,9 +5,10 @@ struct AddPropView: View {
     @Binding var currentX: Double
     @Binding var currentY: Double
     @Binding var placedItems: [PlacedItem]
+    @State private var propId: String = ""
     @State private var nocollide: Bool = false
     
-    let props = ["chair","fellchair","deadrat", "table","fellTable", "box", "trash", "blood", "blood2", "toxic", "xtree-1", "xtree-2", "xtree-3", "xtree-4","microwave","gifts","gift", "smallTable", "fridge1", "fridge2", "kitchenStorage","knifeKettle","pot","holeLeft","holeRight"]
+    let props = ["chair","fellchair","deadrat", "table","fellTable", "box", "trash", "blood", "blood2", "toxic", "xtree-1", "xtree-2", "xtree-3", "xtree-4","microwave","gifts","gift", "smallTable", "fridge1", "fridge2", "kitchenStorage","knifeKettle","pot","holeLeft","holeRight","holeTop","holeDown"]
     let columns = Array(repeating: GridItem(.fixed(48), spacing: 8), count: 8)
     
     var body: some View {
@@ -35,20 +36,24 @@ struct AddPropView: View {
             .cornerRadius(8)
             .frame(maxWidth: .infinity)
             .scrollTargetBehavior(.paging)
-            
+            TextField("propID", text: $propId)
+                .textFieldStyle(.roundedBorder)
+                .font(.footnote)
             Toggle(isOn: $nocollide) {
                 Text("No Collide")
                     .font(.footnote)
             }
             
             Button {
+                let idToUse = propId.isEmpty ? UUID().uuidString : propId
                 placedItems.append(
                     PlacedItem(
                         type: selectedProp,
                         x: currentX,
                         y: currentY,
                         itemType: .prop,
-                        nocollide: nocollide
+                        nocollide: nocollide,
+                        propId: idToUse
                     )
                 )
             } label: {

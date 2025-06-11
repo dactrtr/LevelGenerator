@@ -23,6 +23,17 @@ struct JsonPreviewView: View {
     let onReset: () -> Void
     @State private var showCopiedAlert = false
     
+    
+    private func assignMissingPropIds() -> [PlacedItem] {
+        var updatedItems = placedItems
+        for i in 0..<updatedItems.count {
+            if updatedItems[i].itemType == .prop && updatedItems[i].propId == nil {
+                updatedItems[i].propId = UUID().uuidString
+            }
+        }
+        return updatedItems
+    }
+    
     var body: some View {
         VStack(spacing: 8) {
             ScrollView {
@@ -63,7 +74,8 @@ struct JsonPreviewView: View {
     }
     
     private func generateJson() -> String {
-        let propItems = placedItems.filter { $0.itemType == .prop }
+        let updatedItems = assignMissingPropIds()
+        let propItems = updatedItems.filter { $0.itemType == .prop }
         let enemyItems = placedItems.filter { $0.itemType == .enemy }
         let triggerItems = placedItems.filter { $0.itemType == .trigger }
         let gameItems = placedItems.filter { $0.itemType == .item }
@@ -73,7 +85,8 @@ struct JsonPreviewView: View {
                     {
                         type = "\(item.type)",
                         x = \(Int(item.x)),
-                        y = \(Int(item.y))\(item.nocollide ? ",\n                    nocollide = true" : "")
+                        y = \(Int(item.y))\(item.nocollide ? ",\n                    nocollide = true" : ""),
+                        id = \"\(item.propId!)\"
                     }
             """
         }.joined(separator: ",\n")
