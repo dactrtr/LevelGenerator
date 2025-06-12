@@ -20,6 +20,9 @@ struct JsonPreviewView: View {
     let doorRightLeadsTo: Int
     let doorDownLeadsTo: Int
     let doorLeftLeadsTo: Int
+    let comic: Bool
+    let comicName: String
+    let comicEnter: Bool
     let onReset: () -> Void
     @State private var showCopiedAlert = false
     
@@ -156,10 +159,12 @@ struct JsonPreviewView: View {
                 doors = {
         \(doorsJson)
                 },
+        
                 comic = {
+        \(comic ? """
                         wasPlayed = false,
-                        name = "intro-comic",
-                        play = "enter"
+                        name = "\(comicName)"\(comicEnter ? ",\n play = \"enter\"" : ",\n   play = nil")
+                """ : "") 
                 },
                 items = {
         \(itemsJson)

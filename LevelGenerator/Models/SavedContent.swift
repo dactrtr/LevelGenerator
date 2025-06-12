@@ -16,6 +16,9 @@ protocol LevelEditorState {
     var doorRightLeadsTo: Int { get }
     var doorDownLeadsTo: Int { get }
     var doorLeftLeadsTo: Int { get }
+    var comic: Bool { get }
+    var comicName: String { get }
+    var comicEnter: Bool { get }
 }
 
 struct SavedLevel: Codable, Identifiable, Hashable {
@@ -28,6 +31,11 @@ struct SavedLevel: Codable, Identifiable, Hashable {
     var shadow: Bool
     var doors: SavedDoors
     var placedItems: [PlacedItem]
+    var comic: Bool
+    var comicName: String
+    var comicEnter: Bool
+  
+    
     
     struct SavedDoors: Codable, Hashable {
         var top: Bool
@@ -41,7 +49,7 @@ struct SavedLevel: Codable, Identifiable, Hashable {
     }
     
     enum CodingKeys: String, CodingKey {
-        case id, name, level, roomNumber, tile, light, shadow, doors, placedItems
+        case id, name, level, roomNumber, tile, light, shadow, doors, placedItems, comic, comicName, comicEnter
     }
     
     mutating func update(with editor: LevelEditorState) {
@@ -61,6 +69,9 @@ struct SavedLevel: Codable, Identifiable, Hashable {
             downLeadsTo: editor.doorDownLeadsTo,
             leftLeadsTo: editor.doorLeftLeadsTo
         )
+        comic = editor.comic
+        comicName = editor.comicName
+        comicEnter = editor.comicEnter
     }
     
     // Implementación de Hashable
@@ -71,6 +82,8 @@ struct SavedLevel: Codable, Identifiable, Hashable {
     static func == (lhs: SavedLevel, rhs: SavedLevel) -> Bool {
         lhs.id == rhs.id
     }
+    
+    
 }
 
 struct SavedScript: Codable, Identifiable, Hashable {

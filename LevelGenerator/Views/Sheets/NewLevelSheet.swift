@@ -28,7 +28,10 @@ struct NewLevelSheet: View {
                             top: true, right: true, down: true, left: true,
                             topLeadsTo: 1, rightLeadsTo: 1, downLeadsTo: 1, leftLeadsTo: 1
                         ),
-                        placedItems: []
+                        placedItems: [],
+                        comic: false,
+                        comicName: "",
+                        comicEnter:false,
                     )
                     contentStore.addLevel(newLevel)
                     dismiss()

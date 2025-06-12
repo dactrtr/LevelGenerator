@@ -40,6 +40,10 @@ struct LevelEditorView: View, LevelEditorState {
     @State internal var doorDownLeadsTo: Int
     @State internal var doorLeftLeadsTo: Int
     
+    @State internal var comic: Bool
+    @State internal var comicName: String
+    @State internal var comicEnter: Bool
+    
     init(level: Binding<SavedLevel>) {
         self._level = level
         // Inicializar los estados con los valores del nivel
@@ -57,6 +61,9 @@ struct LevelEditorView: View, LevelEditorState {
         _doorRightLeadsTo = State(initialValue: level.wrappedValue.doors.rightLeadsTo)
         _doorDownLeadsTo = State(initialValue: level.wrappedValue.doors.downLeadsTo)
         _doorLeftLeadsTo = State(initialValue: level.wrappedValue.doors.leftLeadsTo)
+        _comic = State(initialValue: level.wrappedValue.comic)
+        _comicName = State(initialValue: level.wrappedValue.comicName)
+        _comicEnter = State(initialValue: level.wrappedValue.comicEnter)
     }
     
     var body: some View {
@@ -109,6 +116,9 @@ struct LevelEditorView: View, LevelEditorState {
                         doorRightLeadsTo: doorRightLeadsTo,
                         doorDownLeadsTo: doorDownLeadsTo,
                         doorLeftLeadsTo: doorLeftLeadsTo,
+                        comic: comic,
+                        comicName: comicName,
+                        comicEnter: comicEnter,
                         onReset: {
                             currentLevel = 1
                             floorNumber = 1
@@ -136,7 +146,10 @@ struct LevelEditorView: View, LevelEditorState {
                     doorTopLeadsTo: $doorTopLeadsTo,
                     doorRightLeadsTo: $doorRightLeadsTo,
                     doorDownLeadsTo: $doorDownLeadsTo,
-                    doorLeftLeadsTo: $doorLeftLeadsTo
+                    doorLeftLeadsTo: $doorLeftLeadsTo,
+                    comic: $comic,
+                    comicName: $comicName,
+                    comicEnter: $comicEnter
                 )
                 .background(PlatformColor.secondaryBackground)
                 .cornerRadius(10)
