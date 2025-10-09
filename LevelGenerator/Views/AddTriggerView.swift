@@ -8,6 +8,7 @@ struct AddTriggerView: View {
     @Binding var previewHeight: Double
     @State private var scriptName: String = ""
     @State private var isCutscene: Bool = false
+    @State private var isACall: Bool = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -47,6 +48,11 @@ struct AddTriggerView: View {
                 Text("Is Cutscene")
                     .font(.footnote)
             }
+            Toggle(isOn: $isACall) {
+                Text("Is A Call")
+                    .font(.footnote)
+            }
+            
             
             // Add Button
             Button {
@@ -59,7 +65,7 @@ struct AddTriggerView: View {
                         width: previewWidth,
                         height: previewHeight,
                         script: scriptName.isEmpty ? nil : scriptName,
-                        triggerType: isCutscene ? "cutscene" : nil
+                        triggerType: isCutscene ? "cutscene" : (isACall ? "call" : "search")
                     )
                 )
                 scriptName = ""
@@ -82,4 +88,4 @@ struct AddTriggerView: View {
         }
         .padding(12)
     }
-} 
+}

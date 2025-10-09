@@ -114,7 +114,7 @@ struct JsonPreviewView: View {
                         y = \(Int(item.y)),
                         width = \(Int(item.width ?? 60)),
                         height = \(Int(item.height ?? 30)),
-                        script = "\(item.script ?? "")"\(item.triggerType == "cutscene" ? ",\n                    type = \"cutscene\"" : "")
+                        script = "\(item.script ?? "")"\(item.triggerType == "cutscene" ? ",\n                    type = \"cutscene\"" : (item.triggerType == "call" ? ",\n                    type = \"call\"" : ",\n                    type = \"search\""))
                     }
             """
         }.joined(separator: ",\n")
@@ -135,8 +135,8 @@ struct JsonPreviewView: View {
             (direction: "down", isOpen: doorDown, leadsTo: doorDownLeadsTo),
             (direction: "left", isOpen: doorLeft, leadsTo: doorLeftLeadsTo)
         ]
-        .filter { $0.isOpen }
-        .map { door in
+            .filter { $0.isOpen }
+            .map { door in
             """
                     {
                         direction = '\(door.direction)',
@@ -144,8 +144,8 @@ struct JsonPreviewView: View {
                         leadsTo = \(level * 100 + door.leadsTo)
                     }
             """
-        }
-        .joined(separator: ",\n")
+            }
+            .joined(separator: ",\n")
         
         return """
         {
@@ -184,12 +184,12 @@ struct JsonPreviewView: View {
     }
     
     private func copyToClipboard() {
-        #if os(iOS)
+#if os(iOS)
         UIPasteboard.general.string = generateJson()
-        #else
+#else
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(generateJson(), forType: .string)
-        #endif
+#endif
         showCopiedAlert = true
     }
 }
