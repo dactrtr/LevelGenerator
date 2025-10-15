@@ -8,9 +8,13 @@ struct TriggerListView: View {
     }
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 8) {
-                ForEach(Array(triggerItems.enumerated()), id: \.element.id) { index, item in
+        let triggerCount = triggerItems.count
+        VStack(alignment: .leading, spacing: 0) {
+            ItemCounterView(title: "Triggers", currentCount: triggerCount, maxCount: 20)
+                .padding([.top, .horizontal])
+            ScrollView {
+                VStack(spacing: 8) {
+                    ForEach(Array(triggerItems.enumerated()), id: \.element.id) { index, item in
                     HStack {
                         VStack(alignment: .leading) {
                             Text("Trigger \(index + 1)")
@@ -51,6 +55,7 @@ struct TriggerListView: View {
                     .background(PlatformColor.secondaryBackground)
                     .cornerRadius(8)
                     .padding(.horizontal, 8)
+                    }
                 }
             }
         }

@@ -1,5 +1,23 @@
 import SwiftUI
 
+struct ItemCounterView: View {
+    let title: String
+    let currentCount: Int
+    let maxCount: Int
+    
+    var body: some View {
+        HStack {
+            Text("\(title) \(currentCount)/\(maxCount)")
+            if currentCount >= maxCount {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundColor(.yellow)
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .center)
+    }
+}
+
 struct PropListView: View {
     @Binding var placedItems: [PlacedItem]
     
@@ -9,9 +27,11 @@ struct PropListView: View {
                 .font(.headline)
                 .padding(.top)
             
+            let propItems = placedItems.filter { $0.itemType == .prop }
+            ItemCounterView(title: "Props", currentCount: propItems.count, maxCount: 20)
+            
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
-                    let propItems = placedItems.filter { $0.itemType == .prop }
                     ForEach(Array(propItems.enumerated()), id: \.element.id) { index, item in
                         PropRow(item: item, index: index) {
                             if let index = placedItems.firstIndex(where: { $0.id == item.id }) {
