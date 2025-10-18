@@ -114,7 +114,7 @@ struct JsonPreviewView: View {
                         y = \(Int(item.y)),
                         width = \(Int(item.width ?? 60)),
                         height = \(Int(item.height ?? 30)),
-                        script = "\(item.script ?? "")"\(item.triggerType == "cutscene" ? ",\n                    type = \"cutscene\"" : (item.triggerType == "call" ? ",\n                    type = \"call\"" : (item.triggerType == "counter" ? ",\n                    type = \"counter\"" : ",\n                    type = \"search\"")))
+                        script = "\(item.script ?? "")"\(item.triggerType == "cutscene" ? ",\n                    type = \"cutscene\"" : (item.triggerType == "call" ? ",\n                    type = \"call\"" : (item.triggerType == "counter" ? ",\n                    type = \"counter\"" : (item.triggerType == "story" ? ",\n                    type = \"story\"" : ",\n                    type = \"search\""))))
                     }
             """
         }.joined(separator: ",\n")

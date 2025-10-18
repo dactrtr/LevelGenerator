@@ -44,10 +44,11 @@ struct AddTriggerView: View {
             
             // Trigger Type Picker
             Picker("", selection: $triggerType) {
-                Text("Counter").tag("counter")
+                Text("Story").tag("Story")
                 Text("Cutscene").tag("cutscene")
                 Text("Call").tag("call")
                 Text("Search").tag("search")
+                Text("Counter").tag("counter")
             }
             .pickerStyle(.segmented)
             
