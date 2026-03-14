@@ -15,6 +15,8 @@ struct MacContentView: View {
     @State private var selectedLevelId: UUID?
     @State private var selectedScriptId: UUID?
     @State private var columnVisibility = NavigationSplitViewVisibility.doubleColumn
+    @State private var showingDeleteScriptAlert = false
+    @State private var scriptIdToDelete: UUID?
     
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
@@ -50,6 +52,14 @@ struct MacContentView: View {
                         NavigationLink(value: script.id) {
                             ScriptRow(script: script)
                         }
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                scriptIdToDelete = script.id
+                                showingDeleteScriptAlert = true
+                            } label: {
+                                Label("Delete Script", systemImage: "trash")
+                            }
+                        }
                     }
                     .onDelete { indexSet in
                         contentStore.deleteScript(at: indexSet)
@@ -69,7 +79,16 @@ struct MacContentView: View {
                     } label: {
                         Label("Add", systemImage: "plus")
                     }
-                    
+
+                    if selectedSection == .scripts, selectedScriptId != nil {
+                        Button(role: .destructive) {
+                            scriptIdToDelete = selectedScriptId
+                            showingDeleteScriptAlert = true
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
+
                     Menu {
                         Button {
                             showingExportSheet = true
@@ -136,6 +155,23 @@ struct MacContentView: View {
                 showingAlert: $showingImportAlert,
                 alertMessage: $importAlertMessage
             )
+        }
+        .alert("Delete Script", isPresented: $showingDeleteScriptAlert) {
+            Button("Delete", role: .destructive) {
+                if let id = scriptIdToDelete,
+                   let index = contentStore.scripts.firstIndex(where: { $0.id == id }) {
+                    contentStore.deleteScript(at: IndexSet([index]))
+                    if selectedScriptId == id {
+                        selectedScriptId = nil
+                    }
+                }
+                scriptIdToDelete = nil
+            }
+            Button("Cancel", role: .cancel) {
+                scriptIdToDelete = nil
+            }
+        } message: {
+            Text("Are you sure you want to delete this script? This action cannot be undone.")
         }
     }
 }

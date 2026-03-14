@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ContentManagerView: View {
     @StateObject private var contentStore = ContentStore()
-    @State private var selectedSection: ContentSection = .levels
+    @State private var selectedSection: ContentSection = .scripts
     @State private var showingNewLevelSheet = false
     @State private var showingNewScriptSheet = false
     @State private var showingExportSheet = false
