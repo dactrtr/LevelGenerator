@@ -3,32 +3,47 @@ import SwiftUI
 struct ScriptView: View {
     @Binding var script: SavedScript
     @Environment(\.dismiss) var dismiss
+
+    // Parámetro opcional: nombres de scripts existentes para validar condiciones
+    var availableScriptNames: [String] = []
+
     @State private var selectedImage: String = "player"
     @State private var currentDialog: String = ""
     @State private var currentName: String
     @State private var dialogs: [(image: String, text: String, key: String)]
-    
-    let availableImages = ["player", "playerWorry", "playerSurprise", "radioHand", "radioPocket", "radioRing", "notesHand", "playerHappy", "playerAngry","playerSleepy","playerCry"]
-    
-    // Propiedades públicas para SavedScript
+    @State private var conditionalScripts: [ConditionalScript]
+    @State private var centerMode: CenterMode = .dialogs
+
+    let availableImages = [
+        "player", "playerWorry", "playerSurprise",
+        "radioHand", "radioPocket", "radioRing",
+        "notesHand", "playerHappy", "playerAngry", "playerSleepy", "playerCry"
+    ]
+
+    // Propiedades públicas para SavedScript.update(with:)
     var scriptName: String { currentName }
     var scriptDialogs: [(image: String, text: String, key: String)] { dialogs }
-    
-    init(script: Binding<SavedScript>) {
+    var scriptConditionalScripts: [ConditionalScript] { conditionalScripts }
+
+    init(script: Binding<SavedScript>, availableScriptNames: [String] = []) {
         self._script = script
+        self.availableScriptNames = availableScriptNames
         _currentName = State(initialValue: script.wrappedValue.name)
         _dialogs = State(initialValue: script.wrappedValue.dialogs.map { dialog in
             (image: dialog.image, text: dialog.text, key: dialog.key)
         })
+        _conditionalScripts = State(initialValue: script.wrappedValue.conditionalScripts)
     }
-    
+
+    // MARK: - Computed: Lua script (diálogos)
+
     private func generateScriptKey() -> String {
         let formattedName = currentName.lowercased().replacingOccurrences(of: " ", with: "-")
         let dialogCount = dialogs.filter { $0.key.starts(with: formattedName) }.count + 1
         let numberString = String(format: "%02d", dialogCount)
         return "\(formattedName)-\(numberString)"
     }
-    
+
     var generatedLuaScript: String {
         """
         {
@@ -42,12 +57,12 @@ struct ScriptView: View {
                     }
                     """
                 }.joined(separator: ",\n                "))
-                
+
             }
         },
         """
     }
-    
+
     var generatedLocalization: String {
         dialogs.map { dialog in
             """
@@ -55,61 +70,124 @@ struct ScriptView: View {
             """
         }.joined(separator: "\n\n")
     }
-    
+
+    // MARK: - Computed: conditionalScripts Lua
+
+    var generatedConditionalScripts: String {
+        guard !conditionalScripts.isEmpty else { return "" }
+        let lines = conditionalScripts.map { "    \"\($0.conditionString)\"," }
+        return "conditionalScripts = {\n\(lines.joined(separator: "\n"))\n}"
+    }
+
+    // MARK: - Body
+
     var body: some View {
         HStack(spacing: 0) {
-            // Left Column - Script Editors
-            VStack {
-                // Lua Script
-                GroupBox {
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Text("Generated Lua Script")
-                                .font(.headline)
-                            Spacer()
-                            CopyButton(content: generatedLuaScript)
-                        }
-                        TextEditor(text: .constant(generatedLuaScript))
-                            .font(.system(size: 9, design: .monospaced))
-                    }
-                }
-                
-                // Localization
-                GroupBox {
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Text("Generated Localization")
-                                .font(.headline)
-                            Spacer()
-                            CopyButton(content: generatedLocalization)
-                        }
-                        TextEditor(text: .constant(generatedLocalization))
-                            .font(.system(size: 9, design: .monospaced))
-                    }
-                }
-            }
-            .frame(width: 400)
-            .padding()
-            
-            // Center Column - Dialog List
+
+            // ── Left Column: outputs ──────────────────────────────────────
             ScrollView {
-                LazyVStack(spacing: 12) {
-                    ForEach(Array(dialogs.enumerated()), id: \.offset) { index, dialog in
-                        DialogRow(
-                            image: dialog.image,
-                            text: dialog.text,
-                            onDelete: { dialogs.remove(at: index) }
-                        )
+                VStack(spacing: 12) {
+
+                    // Lua script de diálogos
+                    GroupBox {
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text("Generated Lua Script")
+                                    .font(.headline)
+                                Spacer()
+                                CopyButton(content: generatedLuaScript)
+                            }
+                            TextEditor(text: .constant(generatedLuaScript))
+                                .font(.system(size: 9, design: .monospaced))
+                                .frame(minHeight: 140)
+                        }
+                    }
+
+                    // Localization
+                    GroupBox {
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text("Generated Localization")
+                                    .font(.headline)
+                                Spacer()
+                                CopyButton(content: generatedLocalization)
+                            }
+                            TextEditor(text: .constant(generatedLocalization))
+                                .font(.system(size: 9, design: .monospaced))
+                                .frame(minHeight: 100)
+                        }
+                    }
+
+                    // conditionalScripts (solo si hay condiciones)
+                    if !conditionalScripts.isEmpty {
+                        GroupBox {
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack {
+                                    Text("Conditional Scripts")
+                                        .font(.headline)
+                                    Text("(trigger field)")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Spacer()
+                                    CopyButton(content: generatedConditionalScripts)
+                                }
+                                TextEditor(text: .constant(generatedConditionalScripts))
+                                    .font(.system(size: 9, design: .monospaced))
+                                    .frame(
+                                        minHeight: 60,
+                                        maxHeight: CGFloat(conditionalScripts.count) * 20 + 40
+                                    )
+                            }
+                        }
                     }
                 }
                 .padding()
             }
+            .frame(width: 400)
+
+            // ── Center Column: diálogos o condiciones ─────────────────────
+            VStack(spacing: 0) {
+                // Selector de modo
+                Picker("", selection: $centerMode) {
+                    Label("Diálogos", systemImage: "text.bubble").tag(CenterMode.dialogs)
+                    Label("Condiciones", systemImage: "checklist").tag(CenterMode.conditions)
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                .padding(.top, 10)
+                .padding(.bottom, 6)
+
+                Divider()
+
+                if centerMode == .dialogs {
+                    // Lista de diálogos
+                    ScrollView {
+                        LazyVStack(spacing: 12) {
+                            ForEach(Array(dialogs.enumerated()), id: \.offset) { index, dialog in
+                                DialogRow(
+                                    image: dialog.image,
+                                    text: dialog.text,
+                                    onDelete: { dialogs.remove(at: index) }
+                                )
+                            }
+                        }
+                        .padding()
+                    }
+                } else {
+                    // Editor de condiciones
+                    ConditionalScriptsEditorView(
+                        conditions: $conditionalScripts,
+                        availableScriptNames: availableScriptNames
+                    )
+                }
+            }
             .frame(maxWidth: .infinity)
             .background(PlatformColor.background)
-            
-            // Right Column - Dialog Input
+
+            // ── Right Column: input de diálogo ────────────────────────────
             VStack(spacing: 16) {
-                // Image Selector
+
+                // Selector de imagen
                 GroupBox("Select Character") {
                     ScrollView(.horizontal, showsIndicators: false) {
                         LazyHGrid(rows: [GridItem(.fixed(110))], spacing: 8) {
@@ -129,14 +207,14 @@ struct ScriptView: View {
                         .padding(.horizontal)
                     }
                 }
-                
-                // Name Input
+
+                // Nombre del script
                 GroupBox("Dialog Name") {
                     TextField("Enter dialog name", text: $currentName)
                         .textFieldStyle(.roundedBorder)
                 }
-                
-                // Dialog Input
+
+                // Texto del diálogo
                 GroupBox("Dialog Text") {
                     TextEditor(text: Binding(
                         get: { currentDialog },
@@ -160,8 +238,8 @@ struct ScriptView: View {
                         }
                     )
                 }
-                
-                // Add Button
+
+                // Botón agregar diálogo
                 Button {
                     if !currentDialog.isEmpty && !currentName.isEmpty {
                         dialogs.append((
@@ -177,7 +255,7 @@ struct ScriptView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(currentDialog.isEmpty || currentName.isEmpty)
-                
+
                 Spacer()
             }
             .frame(width: 300)
@@ -196,4 +274,4 @@ struct ScriptView: View {
             }
         }
     }
-} 
+}

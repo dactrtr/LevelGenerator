@@ -124,8 +124,11 @@ struct MacContentView: View {
                 } else {
                     if let selectedId = selectedScriptId,
                        let index = contentStore.scripts.firstIndex(where: { $0.id == selectedId }) {
-                        ScriptView(script: contentStore.scriptBinding(at: index))
-                            .id(selectedId)
+                        ScriptView(
+                            script: contentStore.scriptBinding(at: index),
+                            availableScriptNames: contentStore.scripts.map { $0.name }
+                        )
+                        .id(selectedId)
                     } else {
                         ContentUnavailableView {
                             Label("No Script Selected", systemImage: "text.word.spacing")

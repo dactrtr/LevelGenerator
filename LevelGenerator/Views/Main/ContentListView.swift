@@ -46,7 +46,10 @@ struct ContentListView: View {
                 ForEach(contentStore.scripts.indices, id: \.self) { index in
                     #if os(iOS)
                     NavigationLink {
-                        ScriptView(script: contentStore.scriptBinding(at: index))
+                        ScriptView(
+                            script: contentStore.scriptBinding(at: index),
+                            availableScriptNames: contentStore.scripts.map { $0.name }
+                        )
                     } label: {
                         ScriptRow(script: contentStore.scripts[index])
                     }

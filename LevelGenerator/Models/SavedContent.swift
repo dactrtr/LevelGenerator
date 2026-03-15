@@ -86,29 +86,111 @@ struct SavedLevel: Codable, Identifiable, Hashable {
     
 }
 
+// MARK: - Variables del jugador disponibles para condiciones
+
+struct PlayerVariable: Identifiable {
+    let id = UUID()
+    let label: String
+    let path: String
+    let type: String // "bool" o "number"
+
+    static let all: [PlayerVariable] = [
+        PlayerVariable(label: "Es tiny",          path: "isTiny",                     type: "bool"),
+        PlayerVariable(label: "Tiene lámpara",    path: "items.hasLamp",              type: "bool"),
+        PlayerVariable(label: "Tiene botas",      path: "items.hasBoots",             type: "bool"),
+        PlayerVariable(label: "Tiene sopapa",     path: "items.hasPlunger",           type: "bool"),
+        PlayerVariable(label: "Tiene radio",      path: "items.hasRadio",             type: "bool"),
+        PlayerVariable(label: "Tiene reloj",      path: "items.hasDWatch",            type: "bool"),
+        PlayerVariable(label: "Puede flash",      path: "skills.canFlash",            type: "bool"),
+        PlayerVariable(label: "Puede dash",       path: "skills.canDash",             type: "bool"),
+        PlayerVariable(label: "Puede plungerang", path: "skills.canPlungerang",       type: "bool"),
+        PlayerVariable(label: "Puede bailar",     path: "skills.canDance",            type: "bool"),
+        PlayerVariable(label: "HP",               path: "healthPoints",               type: "number"),
+        PlayerVariable(label: "Sanity",           path: "sanity",                     type: "number"),
+        PlayerVariable(label: "Batería",          path: "battery",                    type: "number"),
+        PlayerVariable(label: "Crew capturados",  path: "CrewMemberData.amountTaken", type: "number"),
+        PlayerVariable(label: "Story counter",    path: "storyCounter",               type: "number"),
+    ]
+}
+
+// MARK: - Entrada de conditionalScripts
+
+struct ConditionalScript: Codable, Identifiable, Hashable {
+    var id: UUID = UUID()
+    var variablePath: String           // Path en PlayerData, ej: "isTiny", "items.hasLamp"
+    var variableType: String           // "bool" o "number"
+    var negate: Bool = false           // Solo para bool: agrega ! al frente
+    var numericOperator: String = ">"  // Solo para number: ">", "<", ">=", "<=", "==", "!="
+    var numericValue: Int = 0          // Solo para number
+    var scriptName: String = ""        // Nombre del script a ejecutar si condición es verdadera
+    var isTerminal: Bool = false       // Si true, agrega ! al final (destruye el trigger)
+
+    // No es Codable — se calcula en runtime
+    var conditionString: String {
+        let condition: String
+        if variableType == "bool" {
+            condition = negate ? "!\(variablePath)" : variablePath
+        } else {
+            condition = "\(variablePath) \(numericOperator) \(numericValue)"
+        }
+        let suffix = isTerminal ? "!" : ""
+        return "\(condition):\(scriptName)\(suffix)"
+    }
+
+    init(variablePath: String = "isTiny", variableType: String = "bool") {
+        self.variablePath = variablePath
+        self.variableType = variableType
+    }
+}
+
+// MARK: - Script guardado
+
 struct SavedScript: Codable, Identifiable, Hashable {
     let id: UUID
     var name: String
     var dialogs: [SavedDialog]
-    
+    var conditionalScripts: [ConditionalScript]
+
     struct SavedDialog: Codable, Hashable {
         var image: String
         var text: String
         var key: String
     }
-    
+
+    // Init para crear nuevos scripts
+    init(id: UUID = UUID(), name: String, dialogs: [SavedDialog] = [], conditionalScripts: [ConditionalScript] = []) {
+        self.id = id
+        self.name = name
+        self.dialogs = dialogs
+        self.conditionalScripts = conditionalScripts
+    }
+
+    // Decoder con compatibilidad hacia atrás (scripts sin conditionalScripts)
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        dialogs = try container.decode([SavedDialog].self, forKey: .dialogs)
+        conditionalScripts = (try? container.decodeIfPresent([ConditionalScript].self, forKey: .conditionalScripts)) ?? []
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, dialogs, conditionalScripts
+    }
+
     mutating func update(with scriptView: ScriptView) {
         name = scriptView.scriptName
         dialogs = scriptView.scriptDialogs.map { dialog in
             SavedDialog(image: dialog.image, text: dialog.text, key: dialog.key)
         }
+        conditionalScripts = scriptView.scriptConditionalScripts
     }
-    
+
     // Implementación de Hashable
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
-    
+
     static func == (lhs: SavedScript, rhs: SavedScript) -> Bool {
         lhs.id == rhs.id
     }
@@ -323,16 +405,36 @@ class ContentStore: ObservableObject {
 
 extension ContentStore {
     func levelBinding(at index: Int) -> Binding<SavedLevel> {
-        Binding(
-            get: { self.levels[index] },
-            set: { self.updateLevel(at: index, with: $0) }
+        let id = levels[index].id
+        return Binding(
+            get: {
+                guard let i = self.levels.firstIndex(where: { $0.id == id }) else {
+                    return self.levels[index < self.levels.count ? index : self.levels.count - 1]
+                }
+                return self.levels[i]
+            },
+            set: {
+                if let i = self.levels.firstIndex(where: { $0.id == id }) {
+                    self.updateLevel(at: i, with: $0)
+                }
+            }
         )
     }
     
     func scriptBinding(at index: Int) -> Binding<SavedScript> {
-        Binding(
-            get: { self.scripts[index] },
-            set: { self.updateScript(at: index, with: $0) }
+        let id = scripts[index].id
+        return Binding(
+            get: {
+                guard let i = self.scripts.firstIndex(where: { $0.id == id }) else {
+                    return self.scripts[index < self.scripts.count ? index : self.scripts.count - 1]
+                }
+                return self.scripts[i]
+            },
+            set: {
+                if let i = self.scripts.firstIndex(where: { $0.id == id }) {
+                    self.updateScript(at: i, with: $0)
+                }
+            }
         )
     }
 }
