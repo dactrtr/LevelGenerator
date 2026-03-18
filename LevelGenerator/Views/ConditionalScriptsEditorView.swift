@@ -1,11 +1,5 @@
 import SwiftUI
 
-// Modo del panel central en ScriptView
-enum CenterMode {
-    case dialogs
-    case conditions
-}
-
 // MARK: - Fila de una condición individual
 
 struct ConditionalScriptRowView: View {
@@ -70,19 +64,23 @@ struct ConditionalScriptRowView: View {
             Spacer()
 
             // ── Script destino ───────────────────────────────────────────
-            VStack(alignment: .leading, spacing: 2) {
-                TextField("Script", text: $condition.scriptName)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 145)
-
-                // Warning si el script no existe en el catálogo
-                if !condition.scriptName.isEmpty,
-                   !availableScriptNames.isEmpty,
-                   !availableScriptNames.contains(condition.scriptName) {
-                    Text("⚠️ Script no existe")
+            if availableScriptNames.isEmpty {
+                VStack(alignment: .leading, spacing: 2) {
+                    TextField("Script", text: $condition.scriptName)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 145)
+                    Text("Cargá un archivo LDtk para usar autocompletado")
                         .font(.caption2)
-                        .foregroundColor(.orange)
+                        .foregroundStyle(.secondary)
                 }
+            } else {
+                // condition is @Binding — direct mutation via Button closures is valid
+                Menu(condition.scriptName.isEmpty ? "Seleccionar script" : condition.scriptName) {
+                    ForEach(availableScriptNames, id: \.self) { name in
+                        Button(name) { condition.scriptName = name }
+                    }
+                }
+                .frame(width: 145)
             }
 
             // ── Terminal (!) toggle ──────────────────────────────────────
@@ -119,6 +117,7 @@ struct ConditionalScriptRowView: View {
 struct ConditionalScriptsEditorView: View {
     @Binding var conditions: [ConditionalScript]
     let availableScriptNames: [String]
+    @Environment(\.dismiss) var dismiss
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -143,6 +142,8 @@ struct ConditionalScriptsEditorView: View {
                     Label("Agregar condición", systemImage: "plus")
                 }
                 .buttonStyle(.bordered)
+                Button("Cerrar") { dismiss() }
+                    .buttonStyle(.bordered)
             }
             .padding()
 
