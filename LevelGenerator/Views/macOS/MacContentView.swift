@@ -17,6 +17,9 @@ struct MacContentView: View {
     @State private var columnVisibility = NavigationSplitViewVisibility.doubleColumn
     @State private var showingDeleteScriptAlert = false
     @State private var scriptIdToDelete: UUID?
+    @State private var showingLDtkFilePicker = false
+    @State private var showingLDtkErrorAlert = false
+    @State private var ldtkErrorMessage = ""
     
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
@@ -34,37 +37,48 @@ struct MacContentView: View {
             .listStyle(.sidebar)
         } content: {
             // Lista de contenido con selección
-            List(selection: selectedSection == .levels ? $selectedLevelId : $selectedScriptId) {
-                if selectedSection == .levels {
-                    Section {
-                        ForEach(contentStore.levels) { level in
-                            NavigationLink(value: level.id) {
-                                LevelRow(level: level)
+            VStack(spacing: 0) {
+                List(selection: selectedSection == .levels ? $selectedLevelId : $selectedScriptId) {
+                    if selectedSection == .levels {
+                        Section {
+                            ForEach(contentStore.levels) { level in
+                                NavigationLink(value: level.id) {
+                                    LevelRow(level: level)
+                                }
+                            }
+                            .onDelete { indexSet in
+                                contentStore.deleteLevel(at: indexSet)
+                                selectedLevelId = nil
+                            }
+                        }
+                    } else {
+                        ForEach(contentStore.scripts) { script in
+                            NavigationLink(value: script.id) {
+                                ScriptRow(script: script)
+                            }
+                            .contextMenu {
+                                Button(role: .destructive) {
+                                    scriptIdToDelete = script.id
+                                    showingDeleteScriptAlert = true
+                                } label: {
+                                    Label("Delete Script", systemImage: "trash")
+                                }
                             }
                         }
                         .onDelete { indexSet in
-                            contentStore.deleteLevel(at: indexSet)
-                            selectedLevelId = nil
+                            contentStore.deleteScript(at: indexSet)
+                            selectedScriptId = nil
                         }
                     }
-                } else {
-                    ForEach(contentStore.scripts) { script in
-                        NavigationLink(value: script.id) {
-                            ScriptRow(script: script)
-                        }
-                        .contextMenu {
-                            Button(role: .destructive) {
-                                scriptIdToDelete = script.id
-                                showingDeleteScriptAlert = true
-                            } label: {
-                                Label("Delete Script", systemImage: "trash")
-                            }
-                        }
-                    }
-                    .onDelete { indexSet in
-                        contentStore.deleteScript(at: indexSet)
-                        selectedScriptId = nil
-                    }
+                }
+                .frame(maxHeight: .infinity)
+
+                if selectedSection == .scripts, let name = contentStore.ldtkFileName {
+                    Text("\(name) · \(contentStore.ldtkScriptNames.count) scripts")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(6)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
             .navigationTitle(selectedSection == .levels ? "Levels" : "Scripts")
@@ -89,13 +103,21 @@ struct MacContentView: View {
                         }
                     }
 
+                    if selectedSection == .scripts {
+                        Button {
+                            showingLDtkFilePicker = true
+                        } label: {
+                            Label("Cargar LDtk…", systemImage: "doc.badge.arrow.up")
+                        }
+                    }
+
                     Menu {
                         Button {
                             showingExportSheet = true
                         } label: {
                             Label("Export", systemImage: "square.and.arrow.up")
                         }
-                        
+
                         Button {
                             showingImportSheet = true
                         } label: {
@@ -126,7 +148,7 @@ struct MacContentView: View {
                        let index = contentStore.scripts.firstIndex(where: { $0.id == selectedId }) {
                         ScriptView(
                             script: contentStore.scriptBinding(at: index),
-                            availableScriptNames: contentStore.scripts.map { $0.name }
+                            availableScriptNames: contentStore.ldtkScriptNames
                         )
                         .id(selectedId)
                     } else {
@@ -175,6 +197,28 @@ struct MacContentView: View {
             }
         } message: {
             Text("Are you sure you want to delete this script? This action cannot be undone.")
+        }
+        .fileImporter(
+            isPresented: $showingLDtkFilePicker,
+            allowedContentTypes: [.json]
+        ) { result in
+            switch result {
+            case .success(let url):
+                do {
+                    try contentStore.loadLDtkNames(from: url)
+                } catch {
+                    ldtkErrorMessage = error.localizedDescription
+                    showingLDtkErrorAlert = true
+                }
+            case .failure(let error):
+                ldtkErrorMessage = error.localizedDescription
+                showingLDtkErrorAlert = true
+            }
+        }
+        .alert("Error al cargar LDtk", isPresented: $showingLDtkErrorAlert) {
+            Button("OK") {}
+        } message: {
+            Text(ldtkErrorMessage)
         }
     }
 }
