@@ -12,7 +12,7 @@ struct ScriptView: View {
     @State private var currentName: String
     @State private var dialogs: [(image: String, text: String, key: String)]
     @State private var conditionalScripts: [ConditionalScript]
-    @State private var centerMode: CenterMode = .dialogs
+    @State private var showConditionals = false
 
     let availableImages = [
         "player", "playerWorry", "playerSurprise",
@@ -145,40 +145,20 @@ struct ScriptView: View {
             }
             .frame(width: 400)
 
-            // ── Center Column: diálogos o condiciones ─────────────────────
+            // ── Center Column: diálogos ───────────────────────────────────
             VStack(spacing: 0) {
-                // Selector de modo
-                Picker("", selection: $centerMode) {
-                    Label("Diálogos", systemImage: "text.bubble").tag(CenterMode.dialogs)
-                    Label("Condiciones", systemImage: "checklist").tag(CenterMode.conditions)
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-                .padding(.top, 10)
-                .padding(.bottom, 6)
-
-                Divider()
-
-                if centerMode == .dialogs {
-                    // Lista de diálogos
-                    ScrollView {
-                        LazyVStack(spacing: 12) {
-                            ForEach(Array(dialogs.enumerated()), id: \.offset) { index, dialog in
-                                DialogRow(
-                                    image: dialog.image,
-                                    text: dialog.text,
-                                    onDelete: { dialogs.remove(at: index) }
-                                )
-                            }
+                // Lista de diálogos
+                ScrollView {
+                    LazyVStack(spacing: 12) {
+                        ForEach(Array(dialogs.enumerated()), id: \.offset) { index, dialog in
+                            DialogRow(
+                                image: dialog.image,
+                                text: dialog.text,
+                                onDelete: { dialogs.remove(at: index) }
+                            )
                         }
-                        .padding()
                     }
-                } else {
-                    // Editor de condiciones
-                    ConditionalScriptsEditorView(
-                        conditions: $conditionalScripts,
-                        availableScriptNames: availableScriptNames
-                    )
+                    .padding()
                 }
             }
             .frame(maxWidth: .infinity)
@@ -263,8 +243,18 @@ struct ScriptView: View {
             .background(PlatformColor.groupedBackground)
         }
         .navigationTitle(script.name)
+        .sheet(isPresented: $showConditionals) {
+            ConditionalScriptsEditorView(
+                conditions: $conditionalScripts,
+                availableScriptNames: availableScriptNames
+            )
+            .frame(minWidth: 800, minHeight: 500)
+        }
         .toolbar {
-            ToolbarItem(placement: .primaryAction) {
+            ToolbarItemGroup(placement: .primaryAction) {
+                Button("Condicionales (\(conditionalScripts.count))") {
+                    showConditionals = true
+                }
                 Button("Save") {
                     var updatedScript = script
                     updatedScript.update(with: self)
