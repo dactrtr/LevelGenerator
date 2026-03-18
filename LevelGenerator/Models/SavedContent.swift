@@ -229,9 +229,16 @@ class ContentStore: ObservableObject {
     
     private let levelsKey = "savedLevels"
     private let scriptsKey = "savedScripts"
-    
+    private let ldtkScriptNamesKey = "ldtkScriptNames"
+    private let ldtkFileNameKey = "ldtkFileName"
+
+    @Published var ldtkScriptNames: [String] = []
+    @Published var ldtkFileName: String? = nil
+
     init() {
         loadContent()
+        ldtkScriptNames = UserDefaults.standard.stringArray(forKey: ldtkScriptNamesKey) ?? []
+        ldtkFileName = UserDefaults.standard.string(forKey: ldtkFileNameKey)
     }
     
     func loadContent() {
@@ -285,7 +292,19 @@ class ContentStore: ObservableObject {
         scripts.remove(atOffsets: offsets)
         saveContent()
     }
-    
+
+    func loadLDtkNames(from url: URL) throws {
+        // Security-scoped resource access required for URLs from fileImporter
+        let accessing = url.startAccessingSecurityScopedResource()
+        defer { if accessing { url.stopAccessingSecurityScopedResource() } }
+
+        let data = try Data(contentsOf: url)
+        ldtkScriptNames = try LDtkScriptNameExtractor().extract(from: data)
+        ldtkFileName = url.lastPathComponent
+        UserDefaults.standard.set(ldtkScriptNames, forKey: ldtkScriptNamesKey)
+        UserDefaults.standard.set(ldtkFileName, forKey: ldtkFileNameKey)
+    }
+
     // Estructura para exportar todo el contenido
     struct ExportData: Codable {
         let levels: [SavedLevel]
