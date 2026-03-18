@@ -34,9 +34,9 @@ struct SavedLevel: Codable, Identifiable, Hashable {
     var comic: Bool
     var comicName: String
     var comicEnter: Bool
-  
-    
-    
+
+
+
     struct SavedDoors: Codable, Hashable {
         var top: Bool
         var right: Bool
@@ -47,11 +47,11 @@ struct SavedLevel: Codable, Identifiable, Hashable {
         var downLeadsTo: Int
         var leftLeadsTo: Int
     }
-    
+
     enum CodingKeys: String, CodingKey {
         case id, name, level, roomNumber, tile, light, shadow, doors, placedItems, comic, comicName, comicEnter
     }
-    
+
     mutating func update(with editor: LevelEditorState) {
         level = editor.currentLevel
         roomNumber = editor.floorNumber
@@ -73,17 +73,17 @@ struct SavedLevel: Codable, Identifiable, Hashable {
         comicName = editor.comicName
         comicEnter = editor.comicEnter
     }
-    
+
     // Implementación de Hashable
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
-    
+
     static func == (lhs: SavedLevel, rhs: SavedLevel) -> Bool {
         lhs.id == rhs.id
     }
-    
-    
+
+
 }
 
 // MARK: - Variables del jugador disponibles para condiciones
@@ -149,7 +149,6 @@ struct SavedScript: Codable, Identifiable, Hashable {
     let id: UUID
     var name: String
     var dialogs: [SavedDialog]
-    var conditionalScripts: [ConditionalScript]
 
     struct SavedDialog: Codable, Hashable {
         var image: String
@@ -157,25 +156,10 @@ struct SavedScript: Codable, Identifiable, Hashable {
         var key: String
     }
 
-    // Init para crear nuevos scripts
-    init(id: UUID = UUID(), name: String, dialogs: [SavedDialog] = [], conditionalScripts: [ConditionalScript] = []) {
+    init(id: UUID = UUID(), name: String, dialogs: [SavedDialog] = []) {
         self.id = id
         self.name = name
         self.dialogs = dialogs
-        self.conditionalScripts = conditionalScripts
-    }
-
-    // Decoder con compatibilidad hacia atrás (scripts sin conditionalScripts)
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(UUID.self, forKey: .id)
-        name = try container.decode(String.self, forKey: .name)
-        dialogs = try container.decode([SavedDialog].self, forKey: .dialogs)
-        conditionalScripts = (try? container.decodeIfPresent([ConditionalScript].self, forKey: .conditionalScripts)) ?? []
-    }
-
-    enum CodingKeys: String, CodingKey {
-        case id, name, dialogs, conditionalScripts
     }
 
     mutating func update(with scriptView: ScriptView) {
@@ -216,65 +200,25 @@ struct SavedTrigger: Codable, Identifiable, Hashable {
     static func == (lhs: SavedTrigger, rhs: SavedTrigger) -> Bool { lhs.id == rhs.id }
 }
 
-// Estructura para mantener la información del trigger y su ubicación
-public struct TriggerScriptInfo: Identifiable {
-    public let id = UUID()
-    public let name: String
-    public let level: Int
-    public let room: Int
-    public let roomName: String
-    
-    public var locationDescription: String {
-        "Level \(level) - Room \(room) (\(roomName))"
-    }
-}
-
-// Estructura para agrupar scripts por habitación
-public struct RoomScripts: Identifiable {
-    public let id = UUID()
-    public let level: Int
-    public let room: Int
-    public let roomName: String
-    public let scripts: [TriggerScriptInfo]
-    
-    public var title: String {
-        "Level \(level) - Room \(room) (\(roomName))"
-    }
-}
-
 // Clase para manejar la persistencia
 class ContentStore: ObservableObject {
     @Published var levels: [SavedLevel] = []
-    @Published var scripts: [SavedScript] = []
     @Published var triggers: [SavedTrigger] = []
-    private let triggersKey = "savedTriggers"
 
     private let levelsKey = "savedLevels"
-    private let scriptsKey = "savedScripts"
-    private let ldtkScriptNamesKey = "ldtkScriptNames"
-    private let ldtkFileNameKey = "ldtkFileName"
-
-    @Published var ldtkScriptNames: [String] = []
-    @Published var ldtkFileName: String? = nil
+    private let triggersKey = "savedTriggers"
 
     private let defaults: UserDefaults
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         loadContent()
-        ldtkScriptNames = defaults.stringArray(forKey: ldtkScriptNamesKey) ?? []
-        ldtkFileName = defaults.string(forKey: ldtkFileNameKey)
     }
 
     func loadContent() {
         if let levelsData = defaults.data(forKey: levelsKey),
            let decodedLevels = try? JSONDecoder().decode([SavedLevel].self, from: levelsData) {
             levels = decodedLevels
-        }
-
-        if let scriptsData = defaults.data(forKey: scriptsKey),
-           let decodedScripts = try? JSONDecoder().decode([SavedScript].self, from: scriptsData) {
-            scripts = decodedScripts
         }
 
         if let triggersData = defaults.data(forKey: triggersKey),
@@ -288,42 +232,23 @@ class ContentStore: ObservableObject {
             defaults.set(encodedLevels, forKey: levelsKey)
         }
 
-        if let encodedScripts = try? JSONEncoder().encode(scripts) {
-            defaults.set(encodedScripts, forKey: scriptsKey)
-        }
-
         if let encodedTriggers = try? JSONEncoder().encode(triggers) {
             defaults.set(encodedTriggers, forKey: triggersKey)
         }
     }
-    
+
     func addLevel(_ level: SavedLevel) {
         levels.append(level)
         saveContent()
     }
-    
+
     func updateLevel(at index: Int, with level: SavedLevel) {
         levels[index] = level
         saveContent()
     }
-    
+
     func deleteLevel(at offsets: IndexSet) {
         levels.remove(atOffsets: offsets)
-        saveContent()
-    }
-    
-    func addScript(_ script: SavedScript) {
-        scripts.append(script)
-        saveContent()
-    }
-    
-    func updateScript(at index: Int, with script: SavedScript) {
-        scripts[index] = script
-        saveContent()
-    }
-    
-    func deleteScript(at offsets: IndexSet) {
-        scripts.remove(atOffsets: offsets)
         saveContent()
     }
 
@@ -356,132 +281,73 @@ class ContentStore: ObservableObject {
         saveContent()
     }
 
-    func loadLDtkNames(from url: URL) throws {
-        // Security-scoped resource access required for URLs from fileImporter
-        let accessing = url.startAccessingSecurityScopedResource()
-        defer { if accessing { url.stopAccessingSecurityScopedResource() } }
-
-        let data = try Data(contentsOf: url)
-        ldtkScriptNames = try LDtkScriptNameExtractor().extract(from: data)
-        ldtkFileName = url.lastPathComponent
-        UserDefaults.standard.set(ldtkScriptNames, forKey: ldtkScriptNamesKey)
-        UserDefaults.standard.set(ldtkFileName, forKey: ldtkFileNameKey)
-    }
-
     // Estructura para exportar todo el contenido
     struct ExportData: Codable {
         let levels: [SavedLevel]
-        let scripts: [SavedScript]
+        let triggers: [SavedTrigger]
         let nodeStyles: [NodeStyle]
         let version: String
-        
-        init(levels: [SavedLevel], scripts: [SavedScript]) {
+
+        init(levels: [SavedLevel], triggers: [SavedTrigger]) {
             self.levels = levels
-            self.scripts = scripts
+            self.triggers = triggers
             self.nodeStyles = UserDefaults.standard.data(forKey: "nodeStyles")
                 .flatMap { try? JSONDecoder().decode([NodeStyle].self, from: $0) } ?? []
             self.version = "1.0"
         }
     }
-    
+
     // Exportar a String JSON
     func exportToJSON() -> String? {
-        let exportData = ExportData(levels: levels, scripts: scripts)
+        let exportData = ExportData(levels: levels, triggers: triggers)
         let encoder = JSONEncoder()
-        encoder.outputFormatting = .prettyPrinted  // Para mejor legibilidad
+        encoder.outputFormatting = .prettyPrinted
         if let jsonData = try? encoder.encode(exportData),
            let jsonString = String(data: jsonData, encoding: .utf8) {
             return jsonString
         }
         return nil
     }
-    
+
     // Importar desde String JSON
     func importFromJSON(_ jsonString: String) -> Bool {
         guard let jsonData = jsonString.data(using: .utf8),
               let importedData = try? JSONDecoder().decode(ExportData.self, from: jsonData) else {
             return false
         }
-        
         levels = importedData.levels
-        scripts = importedData.scripts
+        triggers = importedData.triggers
         if let encodedStyles = try? JSONEncoder().encode(importedData.nodeStyles) {
             UserDefaults.standard.set(encodedStyles, forKey: nodeStylesKey)
         }
         saveContent()
         return true
     }
-    
+
     // Importar y fusionar con el contenido existente
     func mergeFromJSON(_ jsonString: String) -> Bool {
         guard let jsonData = jsonString.data(using: .utf8),
               let importedData = try? JSONDecoder().decode(ExportData.self, from: jsonData) else {
             return false
         }
-        
-        // Agregar solo elementos nuevos basados en ID
+
         let existingLevelIds = Set(levels.map { $0.id })
         let newLevels = importedData.levels.filter { !existingLevelIds.contains($0.id) }
         levels.append(contentsOf: newLevels)
-        
-        let existingScriptIds = Set(scripts.map { $0.id })
-        let newScripts = importedData.scripts.filter { !existingScriptIds.contains($0.id) }
-        scripts.append(contentsOf: newScripts)
-        
-        // Fusionar estilos de nodos
+
+        let existingTriggerIds = Set(triggers.map { $0.id })
+        let newTriggers = importedData.triggers.filter { !existingTriggerIds.contains($0.id) }
+        triggers.append(contentsOf: newTriggers)
+
         let currentStyles = loadNodeStyles()
         let existingRoomNumbers = Set(currentStyles.map { $0.roomNumber })
         let newStyles = importedData.nodeStyles.filter { !existingRoomNumbers.contains($0.roomNumber) }
         if let encodedStyles = try? JSONEncoder().encode(currentStyles + newStyles) {
             UserDefaults.standard.set(encodedStyles, forKey: nodeStylesKey)
         }
-        
+
         saveContent()
         return true
-    }
-    
-    // Función actualizada para obtener scripts agrupados por habitación
-    func getTriggerScripts() -> [RoomScripts] {
-        var scriptsByRoom: [String: [TriggerScriptInfo]] = [:]
-        
-        for level in levels {
-            let roomKey = "\(level.level)-\(level.roomNumber)"
-            
-            for item in level.placedItems {
-                // Solo incluir triggers que no sean cutscenes
-                if let scriptName = item.triggerScriptName, item.triggerType != "cutscene" {
-                    let scriptInfo = TriggerScriptInfo(
-                        name: scriptName,
-                        level: level.level,
-                        room: level.roomNumber,
-                        roomName: level.name
-                    )
-                    
-                    if scriptsByRoom[roomKey] == nil {
-                        scriptsByRoom[roomKey] = []
-                    }
-                    scriptsByRoom[roomKey]?.append(scriptInfo)
-                }
-            }
-        }
-        
-        // Filtrar scripts que ya existen
-        let existingScriptNames = Set(scripts.map { $0.name })
-        
-        // Convertir el diccionario a un array de RoomScripts
-        return scriptsByRoom.compactMap { key, scripts in
-            let filteredScripts = scripts.filter { !existingScriptNames.contains($0.name) }
-            guard !filteredScripts.isEmpty,
-                  let firstScript = filteredScripts.first else { return nil }
-            
-            return RoomScripts(
-                level: firstScript.level,
-                room: firstScript.room,
-                roomName: firstScript.roomName,
-                scripts: filteredScripts.sorted { $0.name < $1.name }
-            )
-        }
-        .sorted { $0.level == $1.level ? $0.room < $1.room : $0.level < $1.level }
     }
 }
 
@@ -504,23 +370,6 @@ extension ContentStore {
             set: {
                 if let i = self.levels.firstIndex(where: { $0.id == id }) {
                     self.updateLevel(at: i, with: $0)
-                }
-            }
-        )
-    }
-    
-    func scriptBinding(id: UUID) -> Binding<SavedScript> {
-        Binding(
-            get: {
-                guard let i = self.scripts.firstIndex(where: { $0.id == id }) else {
-                    // Return a placeholder — view will re-render and stop using this binding
-                    return SavedScript(id: id, name: "")
-                }
-                return self.scripts[i]
-            },
-            set: {
-                if let i = self.scripts.firstIndex(where: { $0.id == id }) {
-                    self.updateScript(at: i, with: $0)
                 }
             }
         )
@@ -567,15 +416,15 @@ extension ContentStore {
         let x: Double
         let y: Double
     }
-    
+
     private var nodePositionsKey: String { "nodePositions" }
-    
+
     func saveNodePositions(_ positions: [NodePosition]) {
         if let encoded = try? JSONEncoder().encode(positions) {
             UserDefaults.standard.set(encoded, forKey: nodePositionsKey)
         }
     }
-    
+
     func loadNodePositions() -> [NodePosition] {
         guard let data = UserDefaults.standard.data(forKey: nodePositionsKey),
               let positions = try? JSONDecoder().decode([NodePosition].self, from: data) else {
@@ -590,9 +439,9 @@ extension ContentStore {
         let roomNumber: Int
         let borderColor: String  // Guardamos el color como string
     }
-    
+
     private var nodeStylesKey: String { "nodeStyles" }
-    
+
     func saveNodeStyles(_ nodes: [RoomNode]) {
         let styles = nodes.map { node in
             NodeStyle(
@@ -604,7 +453,7 @@ extension ContentStore {
             UserDefaults.standard.set(encoded, forKey: nodeStylesKey)
         }
     }
-    
+
     func loadNodeStyles() -> [NodeStyle] {
         guard let data = UserDefaults.standard.data(forKey: nodeStylesKey),
               let styles = try? JSONDecoder().decode([NodeStyle].self, from: data) else {
@@ -612,7 +461,7 @@ extension ContentStore {
         }
         return styles
     }
-    
+
     private func colorToString(_ color: Color) -> String {
         switch color {
         case .red: return "red"
@@ -621,4 +470,4 @@ extension ContentStore {
         default: return "clear"
         }
     }
-} 
+}
