@@ -81,7 +81,16 @@ struct SavedTrigger: Codable, Identifiable, Hashable {
 
 Remove all conditional-related state and UI:
 
-- Delete `var availableScriptNames: [String] = []` parameter
+- Delete `var availableScriptNames: [String] = []` parameter — updated `init` signature:
+
+```swift
+init(script: Binding<SavedScript>) {
+    self._script = script
+    _currentName = State(initialValue: script.wrappedValue.name)
+    _dialogs = State(initialValue: script.wrappedValue.dialogs.map { ($0.image, $0.text, $0.key) })
+    // _conditionalScripts initialization REMOVED
+}
+```
 - Delete `@State private var conditionalScripts: [ConditionalScript]`
 - Delete `@State private var showConditionals: Bool`
 - Delete `var scriptConditionalScripts: [ConditionalScript]` computed property
@@ -184,6 +193,8 @@ triggers.append(contentsOf: newTriggers)
 
 Old JSON files that have `"scripts"` but no `"triggers"` will fail to decode and `importFromJSON` returns `false` (existing behavior for malformed data).
 
+The `nodeStyles` merge logic in `mergeFromJSON` is **unchanged**.
+
 ### Removed files
 
 - `LevelGenerator/Parsers/LDtkScriptNameExtractor.swift`
@@ -270,6 +281,7 @@ When `selectedSidebarItem == .trigger(id)`:
 @State private var selectedScriptId: UUID?
 @State private var showConditionals = false
 @State private var showingNewScriptSheet = false
+@State private var showingNewTriggerSheet = false
 
 // Resolved trigger via binding
 let trigger = contentStore.triggerBinding(id: id)
@@ -321,10 +333,7 @@ VStack(spacing: 0) {
 }
 .sheet(isPresented: $showConditionals) {
     ConditionalScriptsEditorView(
-        conditions: Binding(
-            get: { trigger.wrappedValue.conditionalScripts },
-            set: { trigger.conditionalScripts.wrappedValue = $0 }
-        ),
+        conditions: $trigger.conditionalScripts,
         availableScriptNames: trigger.wrappedValue.scripts.map { $0.name }
     )
     .frame(minWidth: 800, minHeight: 500)
@@ -356,7 +365,7 @@ if let sid = selectedScriptId,
 ```swift
 struct NewTriggerSheet: View {
     @Environment(\.dismiss) var dismiss
-    var contentStore: ContentStore
+    @ObservedObject var contentStore: ContentStore
     @State private var name = ""
     var body: some View {
         Form {
@@ -417,22 +426,23 @@ struct ScriptRowWithCopyButtons: View {
         HStack {
             Text(script.name)
             Spacer()
-            Button("Lua") {
-                NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(ScriptLuaGenerator.lua(for: script), forType: .string)
-            }
-            .buttonStyle(.bordered)
-            Button("Strings") {
-                NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(ScriptLuaGenerator.localization(for: script), forType: .string)
-            }
-            .buttonStyle(.bordered)
+            Button("Lua") { copy(ScriptLuaGenerator.lua(for: script)) }
+                .buttonStyle(.bordered)
+            Button("Strings") { copy(ScriptLuaGenerator.localization(for: script)) }
+                .buttonStyle(.bordered)
         }
+    }
+
+    private func copy(_ string: String) {
+        #if os(macOS)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(string, forType: .string)
+        #else
+        UIPasteboard.general.string = string
+        #endif
     }
 }
 ```
-
-For iOS use `UIPasteboard.general.string = ...` inside `#if os(iOS)`.
 
 No toast/confirmation needed — the copy action is instant and reversible.
 
@@ -457,21 +467,27 @@ struct ContentListView: View {
     @State private var selectedTrigger: SavedTrigger?
 ```
 
-The segmented picker changes from `ContentSection` to:
+The iOS content list does **not** attempt to encode trigger selection in `SidebarItem`. It uses a local tab state:
+
 ```swift
-Picker("Section", selection: Binding(
-    get: {
-        if case .levels = selectedSidebarItem { return 0 } else { return 1 }
-    },
-    set: { selectedSidebarItem = $0 == 0 ? .levels : .trigger(UUID()) }
-)) {
-    Text("Levels").tag(0)
-    Text("Triggers").tag(1)
-}
-.pickerStyle(.segmented)
+@State private var showTriggers = false   // false = Levels tab, true = Triggers tab
 ```
 
-When "Triggers" is selected, shows all triggers:
+The segmented picker:
+```swift
+Picker("Section", selection: $showTriggers) {
+    Text("Levels").tag(false)
+    Text("Triggers").tag(true)
+}
+.pickerStyle(.segmented)
+.onChange(of: showTriggers) { _, showing in
+    if !showing { selectedSidebarItem = .levels }
+    // When triggers tab is active, selectedSidebarItem stays .levels
+    // (the connections toolbar button is only shown when .levels, so no change needed)
+}
+```
+
+When `showTriggers == true`, shows all triggers:
 ```swift
 ForEach(contentStore.triggers) { trigger in
     NavigationLink {
@@ -556,6 +572,7 @@ struct TriggerScriptsView: View {
 | Modify | `LevelGenerator/Views/Main/ContentListView.swift` | iOS: triggers list, remove LDtk state |
 | Create | `LevelGenerator/Views/Main/TriggerScriptsView.swift` | iOS: scripts within trigger |
 | Modify | `LevelGenerator/Views/Main/ContentManagerView.swift` | Use `SidebarItem` instead of `ContentSection` |
+| Modify | `LevelGenerator/Views/iOS/iOSContentView.swift` | Replace `selectedSection: ContentSection` param with `selectedSidebarItem: SidebarItem` |
 | Delete | `LevelGenerator/Parsers/LDtkScriptNameExtractor.swift` | Removed |
 | Delete | `LevelGeneratorTests/LDtkScriptNameExtractorTests.swift` | Removed |
 
