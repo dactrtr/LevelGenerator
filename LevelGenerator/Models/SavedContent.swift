@@ -196,6 +196,27 @@ struct SavedScript: Codable, Identifiable, Hashable {
     }
 }
 
+// MARK: - Trigger guardado
+
+struct SavedTrigger: Codable, Identifiable, Hashable {
+    let id: UUID
+    var name: String
+    var scripts: [SavedScript]
+    var conditionalScripts: [ConditionalScript]
+
+    init(id: UUID = UUID(), name: String,
+         scripts: [SavedScript] = [],
+         conditionalScripts: [ConditionalScript] = []) {
+        self.id = id
+        self.name = name
+        self.scripts = scripts
+        self.conditionalScripts = conditionalScripts
+    }
+
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
+    static func == (lhs: SavedTrigger, rhs: SavedTrigger) -> Bool { lhs.id == rhs.id }
+}
+
 // Estructura para mantener la información del trigger y su ubicación
 public struct TriggerScriptInfo: Identifiable {
     public let id = UUID()
@@ -226,7 +247,9 @@ public struct RoomScripts: Identifiable {
 class ContentStore: ObservableObject {
     @Published var levels: [SavedLevel] = []
     @Published var scripts: [SavedScript] = []
-    
+    @Published var triggers: [SavedTrigger] = []
+    private let triggersKey = "savedTriggers"
+
     private let levelsKey = "savedLevels"
     private let scriptsKey = "savedScripts"
     private let ldtkScriptNamesKey = "ldtkScriptNames"
@@ -235,31 +258,43 @@ class ContentStore: ObservableObject {
     @Published var ldtkScriptNames: [String] = []
     @Published var ldtkFileName: String? = nil
 
-    init() {
+    private let defaults: UserDefaults
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
         loadContent()
-        ldtkScriptNames = UserDefaults.standard.stringArray(forKey: ldtkScriptNamesKey) ?? []
-        ldtkFileName = UserDefaults.standard.string(forKey: ldtkFileNameKey)
+        ldtkScriptNames = defaults.stringArray(forKey: ldtkScriptNamesKey) ?? []
+        ldtkFileName = defaults.string(forKey: ldtkFileNameKey)
     }
-    
+
     func loadContent() {
-        if let levelsData = UserDefaults.standard.data(forKey: levelsKey),
+        if let levelsData = defaults.data(forKey: levelsKey),
            let decodedLevels = try? JSONDecoder().decode([SavedLevel].self, from: levelsData) {
             levels = decodedLevels
         }
-        
-        if let scriptsData = UserDefaults.standard.data(forKey: scriptsKey),
+
+        if let scriptsData = defaults.data(forKey: scriptsKey),
            let decodedScripts = try? JSONDecoder().decode([SavedScript].self, from: scriptsData) {
             scripts = decodedScripts
         }
+
+        if let triggersData = defaults.data(forKey: triggersKey),
+           let decodedTriggers = try? JSONDecoder().decode([SavedTrigger].self, from: triggersData) {
+            triggers = decodedTriggers
+        }
     }
-    
+
     func saveContent() {
         if let encodedLevels = try? JSONEncoder().encode(levels) {
-            UserDefaults.standard.set(encodedLevels, forKey: levelsKey)
+            defaults.set(encodedLevels, forKey: levelsKey)
         }
-        
+
         if let encodedScripts = try? JSONEncoder().encode(scripts) {
-            UserDefaults.standard.set(encodedScripts, forKey: scriptsKey)
+            defaults.set(encodedScripts, forKey: scriptsKey)
+        }
+
+        if let encodedTriggers = try? JSONEncoder().encode(triggers) {
+            defaults.set(encodedTriggers, forKey: triggersKey)
         }
     }
     
@@ -290,6 +325,35 @@ class ContentStore: ObservableObject {
     
     func deleteScript(at offsets: IndexSet) {
         scripts.remove(atOffsets: offsets)
+        saveContent()
+    }
+
+    func addTrigger(_ trigger: SavedTrigger) {
+        triggers.append(trigger)
+        saveContent()
+    }
+
+    func updateTrigger(at index: Int, with trigger: SavedTrigger) {
+        triggers[index] = trigger
+        saveContent()
+    }
+
+    func deleteTrigger(at offsets: IndexSet) {
+        triggers.remove(atOffsets: offsets)
+        saveContent()
+    }
+
+    func addScript(_ script: SavedScript, to triggerId: UUID) {
+        guard let i = triggers.firstIndex(where: { $0.id == triggerId }) else { return }
+        triggers[i].scripts.append(script)
+        saveContent()
+    }
+
+    func deleteScript(scriptId: UUID, from triggerId: UUID) {
+        guard let ti = triggers.firstIndex(where: { $0.id == triggerId }),
+              let si = triggers[ti].scripts.firstIndex(where: { $0.id == scriptId })
+        else { return }
+        triggers[ti].scripts.remove(at: si)
         saveContent()
     }
 
@@ -423,12 +487,18 @@ class ContentStore: ObservableObject {
 }
 
 extension ContentStore {
-    func levelBinding(at index: Int) -> Binding<SavedLevel> {
-        let id = levels[index].id
-        return Binding(
+    func levelBinding(id: UUID) -> Binding<SavedLevel> {
+        Binding(
             get: {
                 guard let i = self.levels.firstIndex(where: { $0.id == id }) else {
-                    return self.levels[index < self.levels.count ? index : self.levels.count - 1]
+                    // Return a placeholder — view will re-render and stop using this binding
+                    return SavedLevel(
+                        id: id, name: "", level: 0, roomNumber: 0, tile: 0,
+                        light: 1.0, shadow: false,
+                        doors: .init(top: false, right: false, down: false, left: false,
+                                     topLeadsTo: 0, rightLeadsTo: 0, downLeadsTo: 0, leftLeadsTo: 0),
+                        placedItems: [], comic: false, comicName: "", comicEnter: false
+                    )
                 }
                 return self.levels[i]
             },
@@ -440,12 +510,12 @@ extension ContentStore {
         )
     }
     
-    func scriptBinding(at index: Int) -> Binding<SavedScript> {
-        let id = scripts[index].id
-        return Binding(
+    func scriptBinding(id: UUID) -> Binding<SavedScript> {
+        Binding(
             get: {
                 guard let i = self.scripts.firstIndex(where: { $0.id == id }) else {
-                    return self.scripts[index < self.scripts.count ? index : self.scripts.count - 1]
+                    // Return a placeholder — view will re-render and stop using this binding
+                    return SavedScript(id: id, name: "")
                 }
                 return self.scripts[i]
             },
@@ -453,6 +523,40 @@ extension ContentStore {
                 if let i = self.scripts.firstIndex(where: { $0.id == id }) {
                     self.updateScript(at: i, with: $0)
                 }
+            }
+        )
+    }
+
+    func triggerBinding(id: UUID) -> Binding<SavedTrigger> {
+        Binding(
+            get: {
+                guard let i = self.triggers.firstIndex(where: { $0.id == id }) else {
+                    return SavedTrigger(id: id, name: "")
+                }
+                return self.triggers[i]
+            },
+            set: {
+                if let i = self.triggers.firstIndex(where: { $0.id == id }) {
+                    self.updateTrigger(at: i, with: $0)
+                }
+            }
+        )
+    }
+
+    func scriptBinding(triggerId: UUID, scriptId: UUID) -> Binding<SavedScript> {
+        Binding(
+            get: {
+                guard let ti = self.triggers.firstIndex(where: { $0.id == triggerId }),
+                      let si = self.triggers[ti].scripts.firstIndex(where: { $0.id == scriptId })
+                else { return SavedScript(id: scriptId, name: "") }
+                return self.triggers[ti].scripts[si]
+            },
+            set: {
+                guard let ti = self.triggers.firstIndex(where: { $0.id == triggerId }),
+                      let si = self.triggers[ti].scripts.firstIndex(where: { $0.id == scriptId })
+                else { return }
+                self.triggers[ti].scripts[si] = $0
+                self.saveContent()
             }
         )
     }
