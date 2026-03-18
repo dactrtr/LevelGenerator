@@ -10,6 +10,9 @@ struct ContentListView: View {
     @Binding var selectedLevel: SavedLevel?
     @Binding var selectedScript: SavedScript?
     @State private var showingConnectionMap = false
+    @State private var showingLDtkFilePicker = false
+    @State private var showingLDtkErrorAlert = false
+    @State private var ldtkErrorMessage = ""
     
     var body: some View {
         List {
@@ -48,7 +51,7 @@ struct ContentListView: View {
                     NavigationLink {
                         ScriptView(
                             script: contentStore.scriptBinding(at: index),
-                            availableScriptNames: contentStore.scripts.map { $0.name }
+                            availableScriptNames: contentStore.ldtkScriptNames
                         )
                     } label: {
                         ScriptRow(script: contentStore.scripts[index])
@@ -82,7 +85,7 @@ struct ContentListView: View {
                     Image(systemName: "plus")
                 }
             }
-            
+
             ToolbarItem(placement: .primaryAction) {
                 Menu {
                     Button {
@@ -90,7 +93,7 @@ struct ContentListView: View {
                     } label: {
                         Label("Export", systemImage: "square.and.arrow.up")
                     }
-                    
+
                     Button {
                         showingImportSheet = true
                     } label: {
@@ -100,6 +103,38 @@ struct ContentListView: View {
                     Image(systemName: "ellipsis.circle")
                 }
             }
+
+            if selectedSection == .scripts {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        showingLDtkFilePicker = true
+                    } label: {
+                        Image(systemName: "doc.badge.arrow.up")
+                    }
+                }
+            }
+        }
+        .fileImporter(
+            isPresented: $showingLDtkFilePicker,
+            allowedContentTypes: [.json]
+        ) { result in
+            switch result {
+            case .success(let url):
+                do {
+                    try contentStore.loadLDtkNames(from: url)
+                } catch {
+                    ldtkErrorMessage = error.localizedDescription
+                    showingLDtkErrorAlert = true
+                }
+            case .failure(let error):
+                ldtkErrorMessage = error.localizedDescription
+                showingLDtkErrorAlert = true
+            }
+        }
+        .alert("Error al cargar LDtk", isPresented: $showingLDtkErrorAlert) {
+            Button("OK") {}
+        } message: {
+            Text(ldtkErrorMessage)
         }
         #endif
     }
