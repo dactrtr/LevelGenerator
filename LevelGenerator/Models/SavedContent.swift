@@ -183,7 +183,6 @@ struct SavedScript: Codable, Identifiable, Hashable {
         dialogs = scriptView.scriptDialogs.map { dialog in
             SavedDialog(image: dialog.image, text: dialog.text, key: dialog.key)
         }
-        conditionalScripts = scriptView.scriptConditionalScripts
     }
 
     // Implementación de Hashable

@@ -4,15 +4,10 @@ struct ScriptView: View {
     @Binding var script: SavedScript
     @Environment(\.dismiss) var dismiss
 
-    // Parámetro opcional: nombres de scripts existentes para validar condiciones
-    var availableScriptNames: [String] = []
-
     @State private var selectedImage: String = "player"
     @State private var currentDialog: String = ""
     @State private var currentName: String
     @State private var dialogs: [(image: String, text: String, key: String)]
-    @State private var conditionalScripts: [ConditionalScript]
-    @State private var showConditionals = false
 
     let availableImages = [
         "player", "playerWorry", "playerSurprise",
@@ -23,19 +18,16 @@ struct ScriptView: View {
     // Propiedades públicas para SavedScript.update(with:)
     var scriptName: String { currentName }
     var scriptDialogs: [(image: String, text: String, key: String)] { dialogs }
-    var scriptConditionalScripts: [ConditionalScript] { conditionalScripts }
 
-    init(script: Binding<SavedScript>, availableScriptNames: [String] = []) {
+    init(script: Binding<SavedScript>) {
         self._script = script
-        self.availableScriptNames = availableScriptNames
         _currentName = State(initialValue: script.wrappedValue.name)
         _dialogs = State(initialValue: script.wrappedValue.dialogs.map { dialog in
             (image: dialog.image, text: dialog.text, key: dialog.key)
         })
-        _conditionalScripts = State(initialValue: script.wrappedValue.conditionalScripts)
     }
 
-    // MARK: - Computed: Lua script (diálogos)
+    // MARK: - Computed: key generation
 
     private func generateScriptKey() -> String {
         let formattedName = currentName.lowercased().replacingOccurrences(of: " ", with: "-")
@@ -44,39 +36,22 @@ struct ScriptView: View {
         return "\(formattedName)-\(numberString)"
     }
 
-    var generatedLuaScript: String {
-        """
-        {
-            name = "\(currentName)",
-            dialog = {
-                \(dialogs.map { dialog in
-                    """
-                    {
-                        video = '\(dialog.image)',
-                        text = "\(dialog.key)",
-                    }
-                    """
-                }.joined(separator: ",\n                "))
+    // MARK: - Computed: outputs via ScriptLuaGenerator
 
-            }
-        },
-        """
+    var generatedLuaScript: String {
+        let tempScript = SavedScript(
+            name: currentName,
+            dialogs: dialogs.map { SavedScript.SavedDialog(image: $0.image, text: $0.text, key: $0.key) }
+        )
+        return ScriptLuaGenerator.lua(for: tempScript)
     }
 
     var generatedLocalization: String {
-        dialogs.map { dialog in
-            """
-            "\(dialog.key)" = "\(dialog.text)"
-            """
-        }.joined(separator: "\n\n")
-    }
-
-    // MARK: - Computed: conditionalScripts Lua
-
-    var generatedConditionalScripts: String {
-        guard !conditionalScripts.isEmpty else { return "" }
-        let lines = conditionalScripts.map { "    \"\($0.conditionString)\"," }
-        return "conditionalScripts = {\n\(lines.joined(separator: "\n"))\n}"
+        let tempScript = SavedScript(
+            name: currentName,
+            dialogs: dialogs.map { SavedScript.SavedDialog(image: $0.image, text: $0.text, key: $0.key) }
+        )
+        return ScriptLuaGenerator.localization(for: tempScript)
     }
 
     // MARK: - Body
@@ -88,7 +63,6 @@ struct ScriptView: View {
             ScrollView {
                 VStack(spacing: 12) {
 
-                    // Lua script de diálogos
                     GroupBox {
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
@@ -103,7 +77,6 @@ struct ScriptView: View {
                         }
                     }
 
-                    // Localization
                     GroupBox {
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
@@ -117,29 +90,6 @@ struct ScriptView: View {
                                 .frame(minHeight: 100)
                         }
                     }
-
-                    // conditionalScripts (solo si hay condiciones)
-                    if !conditionalScripts.isEmpty {
-                        GroupBox {
-                            VStack(alignment: .leading, spacing: 4) {
-                                HStack {
-                                    Text("Conditional Scripts")
-                                        .font(.headline)
-                                    Text("(trigger field)")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                    Spacer()
-                                    CopyButton(content: generatedConditionalScripts)
-                                }
-                                TextEditor(text: .constant(generatedConditionalScripts))
-                                    .font(.system(size: 9, design: .monospaced))
-                                    .frame(
-                                        minHeight: 60,
-                                        maxHeight: CGFloat(conditionalScripts.count) * 20 + 40
-                                    )
-                            }
-                        }
-                    }
                 }
                 .padding()
             }
@@ -147,7 +97,6 @@ struct ScriptView: View {
 
             // ── Center Column: diálogos ───────────────────────────────────
             VStack(spacing: 0) {
-                // Lista de diálogos
                 ScrollView {
                     LazyVStack(spacing: 12) {
                         ForEach(Array(dialogs.enumerated()), id: \.offset) { index, dialog in
@@ -167,7 +116,6 @@ struct ScriptView: View {
             // ── Right Column: input de diálogo ────────────────────────────
             VStack(spacing: 16) {
 
-                // Selector de imagen
                 GroupBox("Select Character") {
                     ScrollView(.horizontal, showsIndicators: false) {
                         LazyHGrid(rows: [GridItem(.fixed(110))], spacing: 8) {
@@ -188,20 +136,16 @@ struct ScriptView: View {
                     }
                 }
 
-                // Nombre del script
                 GroupBox("Dialog Name") {
                     TextField("Enter dialog name", text: $currentName)
                         .textFieldStyle(.roundedBorder)
                 }
 
-                // Texto del diálogo
                 GroupBox("Dialog Text") {
                     TextEditor(text: Binding(
                         get: { currentDialog },
                         set: { newValue in
-                            if newValue.count <= 94 {
-                                currentDialog = newValue
-                            }
+                            if newValue.count <= 94 { currentDialog = newValue }
                         }
                     ))
                     .frame(height: 100)
@@ -219,7 +163,6 @@ struct ScriptView: View {
                     )
                 }
 
-                // Botón agregar diálogo
                 Button {
                     if !currentDialog.isEmpty && !currentName.isEmpty {
                         dialogs.append((
@@ -243,18 +186,8 @@ struct ScriptView: View {
             .background(PlatformColor.groupedBackground)
         }
         .navigationTitle(script.name)
-        .sheet(isPresented: $showConditionals) {
-            ConditionalScriptsEditorView(
-                conditions: $conditionalScripts,
-                availableScriptNames: availableScriptNames
-            )
-            .frame(minWidth: 800, minHeight: 500)
-        }
         .toolbar {
-            ToolbarItemGroup(placement: .primaryAction) {
-                Button("Condicionales (\(conditionalScripts.count))") {
-                    showConditionals = true
-                }
+            ToolbarItem(placement: .primaryAction) {
                 Button("Save") {
                     var updatedScript = script
                     updatedScript.update(with: self)

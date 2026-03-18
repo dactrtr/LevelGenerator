@@ -1,5 +1,2 @@
-import Foundation
-
-enum ContentSection {
-    case levels, scripts
-} 
+// This file intentionally empty — SidebarItem replaces ContentSection.
+// See SidebarItem.swift
