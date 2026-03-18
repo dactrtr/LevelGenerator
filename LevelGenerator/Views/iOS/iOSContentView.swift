@@ -13,39 +13,14 @@ struct iOSContentView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                Section("Levels") {
-                    ForEach(contentStore.levels) { level in
-                        NavigationLink {
-                            LevelEditorView(level: contentStore.levelBinding(id: level.id))
-                        } label: {
-                            LevelRow(level: level)
-                        }
-                    }
-                    .onDelete { indexSet in
-                        contentStore.deleteLevel(at: indexSet)
-                    }
-                }
-                Section("Triggers") {
-                    ForEach(contentStore.triggers) { trigger in
-                        NavigationLink {
-                            TriggerDetailView(contentStore: contentStore, triggerId: trigger.id)
-                        } label: {
-                            Text(trigger.name)
-                        }
-                    }
-                }
-            }
-            .navigationTitle("Content")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        showingNewLevelSheet = true
-                    } label: {
-                        Label("Add Level", systemImage: "plus")
-                    }
-                }
-            }
+            ContentListView(
+                contentStore: contentStore,
+                selectedSidebarItem: $selectedSidebarItem,
+                showingNewLevelSheet: $showingNewLevelSheet,
+                showingExportSheet: $showingExportSheet,
+                showingImportSheet: $showingImportSheet,
+                selectedLevel: .constant(nil)
+            )
         }
         .sheet(isPresented: $showingNewLevelSheet) {
             NavigationStack {
@@ -64,25 +39,6 @@ struct iOSContentView: View {
                 alertMessage: $importAlertMessage
             )
         }
-    }
-}
-
-struct TriggerDetailView: View {
-    @ObservedObject var contentStore: ContentStore
-    let triggerId: UUID
-
-    var body: some View {
-        let trigger = contentStore.triggerBinding(id: triggerId)
-        List {
-            ForEach(trigger.wrappedValue.scripts) { script in
-                NavigationLink {
-                    ScriptView(script: contentStore.scriptBinding(triggerId: triggerId, scriptId: script.id))
-                } label: {
-                    Text(script.name)
-                }
-            }
-        }
-        .navigationTitle(trigger.wrappedValue.name)
     }
 }
 #endif
