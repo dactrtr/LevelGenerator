@@ -5,7 +5,7 @@ struct TriggerDetailView: View {
     let availableScriptNames: [String]
     @State private var showConditionals = false
 
-    private let triggerTypes = ["Story", "Cutscene", "Search", "Call", "Counter"]
+    private let triggerTypes = ["Story", "cutscene", "search", "call", "counter"]
 
     private var generatedLua: String {
         ScriptLuaGenerator.lua(for: trigger)

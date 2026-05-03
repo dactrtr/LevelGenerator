@@ -42,7 +42,7 @@ struct ScriptView: View {
         SavedScript(
             name: currentName,
             dialogs: dialogs.map {
-                SavedScript.SavedDialog(video: $0.video, text: $0.text, key: $0.key, screen: $0.screen.flatMap { $0.isEmpty ? nil : $0 })
+                SavedScript.SavedDialog(video: $0.video, text: $0.text, key: $0.key, screen: $0.screen)
             }
         )
     }
@@ -86,7 +86,7 @@ struct ScriptView: View {
             VStack(spacing: 0) {
                 ScrollView {
                     LazyVStack(spacing: 12) {
-                        ForEach(Array(dialogs.enumerated()), id: \.offset) { index, dialog in
+                        ForEach(Array(dialogs.enumerated()), id: \.element.key) { index, dialog in
                             DialogRow(
                                 video: dialog.video,
                                 text: dialog.text,

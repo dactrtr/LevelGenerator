@@ -253,22 +253,22 @@ class ContentStore: ObservableObject {
 
     // MARK: Levels
     func addLevel(_ level: SavedLevel) { levels.append(level); saveContent() }
-    func updateLevel(at index: Int, with level: SavedLevel) { levels[index] = level; saveContent() }
+    private func updateLevel(at index: Int, with level: SavedLevel) { levels[index] = level; saveContent() }
     func deleteLevel(at offsets: IndexSet) { levels.remove(atOffsets: offsets); saveContent() }
 
     // MARK: Scripts
     func addScript(_ script: SavedScript) { scripts.append(script); saveContent() }
-    func updateScript(at index: Int, with script: SavedScript) { scripts[index] = script; saveContent() }
+    private func updateScript(at index: Int, with script: SavedScript) { scripts[index] = script; saveContent() }
     func deleteScript(at offsets: IndexSet) { scripts.remove(atOffsets: offsets); saveContent() }
 
     // MARK: Triggers
     func addTrigger(_ trigger: SavedTrigger) { triggers.append(trigger); saveContent() }
-    func updateTrigger(at index: Int, with trigger: SavedTrigger) { triggers[index] = trigger; saveContent() }
+    private func updateTrigger(at index: Int, with trigger: SavedTrigger) { triggers[index] = trigger; saveContent() }
     func deleteTrigger(at offsets: IndexSet) { triggers.remove(atOffsets: offsets); saveContent() }
 
     // MARK: NPCs
     func addNPC(_ npc: SavedNPC) { npcs.append(npc); saveContent() }
-    func updateNPC(at index: Int, with npc: SavedNPC) { npcs[index] = npc; saveContent() }
+    private func updateNPC(at index: Int, with npc: SavedNPC) { npcs[index] = npc; saveContent() }
     func deleteNPC(at offsets: IndexSet) { npcs.remove(atOffsets: offsets); saveContent() }
 
     // MARK: Export / Import
@@ -280,19 +280,19 @@ class ContentStore: ObservableObject {
         let nodeStyles: [NodeStyle]
         let version: String
 
-        init(levels: [SavedLevel], scripts: [SavedScript], triggers: [SavedTrigger], npcs: [SavedNPC]) {
+        init(levels: [SavedLevel], scripts: [SavedScript], triggers: [SavedTrigger], npcs: [SavedNPC], defaults: UserDefaults = .standard) {
             self.levels = levels
             self.scripts = scripts
             self.triggers = triggers
             self.npcs = npcs
-            self.nodeStyles = UserDefaults.standard.data(forKey: "nodeStyles")
+            self.nodeStyles = defaults.data(forKey: "nodeStyles")
                 .flatMap { try? JSONDecoder().decode([NodeStyle].self, from: $0) } ?? []
             self.version = "2.0"
         }
     }
 
     func exportToJSON() -> String? {
-        let data = ExportData(levels: levels, scripts: scripts, triggers: triggers, npcs: npcs)
+        let data = ExportData(levels: levels, scripts: scripts, triggers: triggers, npcs: npcs, defaults: defaults)
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
         guard let jsonData = try? encoder.encode(data),
@@ -308,7 +308,7 @@ class ContentStore: ObservableObject {
         triggers = imported.triggers
         npcs = imported.npcs
         if let encoded = try? JSONEncoder().encode(imported.nodeStyles) {
-            UserDefaults.standard.set(encoded, forKey: nodeStylesKey)
+            defaults.set(encoded, forKey: nodeStylesKey)
         }
         saveContent()
         return true
@@ -334,7 +334,7 @@ class ContentStore: ObservableObject {
         let existingRooms = Set(currentStyles.map { $0.roomNumber })
         let newStyles = imported.nodeStyles.filter { !existingRooms.contains($0.roomNumber) }
         if let encoded = try? JSONEncoder().encode(currentStyles + newStyles) {
-            UserDefaults.standard.set(encoded, forKey: nodeStylesKey)
+            defaults.set(encoded, forKey: nodeStylesKey)
         }
         saveContent()
         return true
