@@ -12,22 +12,53 @@ struct MacContentView: View {
     @Binding var importAlertMessage: String
 
     @State private var selectedLevelId: UUID?
-    @State private var selectedScriptId: UUID?
     @State private var columnVisibility = NavigationSplitViewVisibility.doubleColumn
-    @State private var showConditionals = false
-    @State private var showingNewTriggerSheet = false
     @State private var showingNewScriptSheet = false
-    @State private var showingDeleteAlert = false
-    @State private var deletingScriptId: UUID?
+    @State private var showingNewTriggerSheet = false
+    @State private var showingNewNPCSheet = false
 
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             // ── Sidebar ───────────────────────────────────────────────────
             List(selection: $selectedSidebarItem) {
-                NavigationLink(value: SidebarItem.levels) {
-                    Label("Levels", systemImage: "square.stack.3d.up")
+
+                Section {
+                    NavigationLink(value: SidebarItem.levels) {
+                        Label("Levels", systemImage: "square.stack.3d.up")
+                    }
+                } header: {
+                    HStack {
+                        Text("Levels")
+                        Spacer()
+                        Button { showingNewLevelSheet = true } label: { Image(systemName: "plus") }
+                            .buttonStyle(.plain)
+                    }
                 }
-                Section("Triggers") {
+
+                Section {
+                    ForEach(contentStore.scripts) { script in
+                        NavigationLink(value: SidebarItem.script(script.id)) {
+                            Text(script.name)
+                        }
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                if let i = contentStore.scripts.firstIndex(where: { $0.id == script.id }) {
+                                    contentStore.deleteScript(at: IndexSet([i]))
+                                    selectedSidebarItem = .levels
+                                }
+                            } label: { Label("Delete Script", systemImage: "trash") }
+                        }
+                    }
+                } header: {
+                    HStack {
+                        Text("Scripts")
+                        Spacer()
+                        Button { showingNewScriptSheet = true } label: { Image(systemName: "plus") }
+                            .buttonStyle(.plain)
+                    }
+                }
+
+                Section {
                     ForEach(contentStore.triggers) { trigger in
                         NavigationLink(value: SidebarItem.trigger(trigger.id)) {
                             Text(trigger.name)
@@ -38,120 +69,77 @@ struct MacContentView: View {
                                     contentStore.deleteTrigger(at: IndexSet([i]))
                                     selectedSidebarItem = .levels
                                 }
-                            } label: {
-                                Label("Delete Trigger", systemImage: "trash")
-                            }
+                            } label: { Label("Delete Trigger", systemImage: "trash") }
                         }
+                    }
+                } header: {
+                    HStack {
+                        Text("Triggers")
+                        Spacer()
+                        Button { showingNewTriggerSheet = true } label: { Image(systemName: "plus") }
+                            .buttonStyle(.plain)
+                    }
+                }
+
+                Section {
+                    ForEach(contentStore.npcs) { npc in
+                        NavigationLink(value: SidebarItem.npc(npc.id)) {
+                            Text(npc.name)
+                        }
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                if let i = contentStore.npcs.firstIndex(where: { $0.id == npc.id }) {
+                                    contentStore.deleteNPC(at: IndexSet([i]))
+                                    selectedSidebarItem = .levels
+                                }
+                            } label: { Label("Delete NPC", systemImage: "trash") }
+                        }
+                    }
+                } header: {
+                    HStack {
+                        Text("NPCs")
+                        Spacer()
+                        Button { showingNewNPCSheet = true } label: { Image(systemName: "plus") }
+                            .buttonStyle(.plain)
                     }
                 }
             }
             .navigationTitle("Content")
             .listStyle(.sidebar)
-            .toolbar {
-                Button {
-                    if case .levels = selectedSidebarItem {
-                        showingNewLevelSheet = true
-                    } else {
-                        showingNewTriggerSheet = true
-                    }
-                } label: {
-                    Label("Add", systemImage: "plus")
-                }
-            }
 
         } content: {
             // ── Content column ────────────────────────────────────────────
-            if case .trigger(let triggerId) = selectedSidebarItem,
-               contentStore.triggers.contains(where: { $0.id == triggerId }) {
+            switch selectedSidebarItem {
 
-                let trigger = contentStore.triggerBinding(id: triggerId)
-
-                VStack(spacing: 0) {
-                    List(selection: $selectedScriptId) {
-                        ForEach(trigger.wrappedValue.scripts) { script in
-                            NavigationLink(value: script.id) {
-                                ScriptRowWithCopyButtons(script: script)
-                            }
-                            .contextMenu {
-                                Button(role: .destructive) {
-                                    deletingScriptId = script.id
-                                    showingDeleteAlert = true
-                                } label: {
-                                    Label("Delete Script", systemImage: "trash")
-                                }
-                            }
-                        }
-                        .onDelete { offsets in
-                            offsets.forEach { i in
-                                let id = trigger.wrappedValue.scripts[i].id
-                                contentStore.deleteScript(scriptId: id, from: triggerId)
-                            }
-                            selectedScriptId = nil
-                        }
+            case .script(let scriptId)
+                where contentStore.scripts.contains(where: { $0.id == scriptId }):
+                ScriptView(script: contentStore.scriptBinding(id: scriptId))
+                    .id(scriptId)
+                    .toolbar {
+                        exportImportMenu
                     }
-                    .frame(maxHeight: .infinity)
-                }
-                .navigationTitle(trigger.wrappedValue.name)
-                .toolbar {
-                    ToolbarItemGroup {
-                        Button {
-                            showingNewScriptSheet = true
-                        } label: {
-                            Label("Add Script", systemImage: "plus")
-                        }
 
-                        if selectedScriptId != nil {
-                            Button(role: .destructive) {
-                                deletingScriptId = selectedScriptId
-                                showingDeleteAlert = true
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
-                        }
+            case .trigger(let triggerId)
+                where contentStore.triggers.contains(where: { $0.id == triggerId }):
+                TriggerDetailView(
+                    trigger: contentStore.triggerBinding(id: triggerId),
+                    availableScriptNames: contentStore.scripts.map { $0.name }
+                )
+                .id(triggerId)
+                .navigationTitle(contentStore.triggers.first(where: { $0.id == triggerId })?.name ?? "")
+                .toolbar { exportImportMenu }
 
-                        Button("Condicionales (\(trigger.wrappedValue.conditionalScripts.count))") {
-                            showConditionals = true
-                        }
+            case .npc(let npcId)
+                where contentStore.npcs.contains(where: { $0.id == npcId }):
+                NPCDetailView(
+                    npc: contentStore.npcBinding(id: npcId),
+                    availableScriptNames: contentStore.scripts.map { $0.name }
+                )
+                .id(npcId)
+                .navigationTitle(contentStore.npcs.first(where: { $0.id == npcId })?.name ?? "")
+                .toolbar { exportImportMenu }
 
-                        Menu {
-                            Button { showingExportSheet = true } label: {
-                                Label("Export", systemImage: "square.and.arrow.up")
-                            }
-                            Button { showingImportSheet = true } label: {
-                                Label("Import", systemImage: "square.and.arrow.down")
-                            }
-                        } label: {
-                            Label("More", systemImage: "ellipsis.circle")
-                        }
-                    }
-                }
-                .sheet(isPresented: $showConditionals) {
-                    ConditionalScriptsEditorView(
-                        conditions: trigger.conditionalScripts,
-                        availableScriptNames: trigger.wrappedValue.scripts.map { $0.name }
-                    )
-                    .frame(minWidth: 800, minHeight: 500)
-                }
-                .sheet(isPresented: $showingNewScriptSheet) {
-                    NewScriptInTriggerSheet { name in
-                        contentStore.addScript(SavedScript(name: name), to: triggerId)
-                    }
-                }
-                .alert("Delete Script", isPresented: $showingDeleteAlert) {
-                    Button("Delete", role: .destructive) {
-                        if let id = deletingScriptId {
-                            contentStore.deleteScript(scriptId: id, from: triggerId)
-                            if selectedScriptId == id { selectedScriptId = nil }
-                        }
-                        deletingScriptId = nil
-                    }
-                    Button("Cancel", role: .cancel) { deletingScriptId = nil }
-                } message: {
-                    Text("This action cannot be undone.")
-                }
-
-            } else {
-                // Levels list
+            default:
                 List(selection: $selectedLevelId) {
                     ForEach(contentStore.levels) { level in
                         NavigationLink(value: level.id) {
@@ -164,64 +152,36 @@ struct MacContentView: View {
                     }
                 }
                 .navigationTitle("Levels")
-                .toolbar {
-                    ToolbarItemGroup {
-                        Menu {
-                            Button { showingExportSheet = true } label: {
-                                Label("Export", systemImage: "square.and.arrow.up")
-                            }
-                            Button { showingImportSheet = true } label: {
-                                Label("Import", systemImage: "square.and.arrow.down")
-                            }
-                        } label: {
-                            Label("More", systemImage: "ellipsis.circle")
-                        }
-                    }
-                }
+                .toolbar { exportImportMenu }
             }
 
         } detail: {
-            // ── Detail column ─────────────────────────────────────────────
-            Group {
-                if case .levels = selectedSidebarItem {
-                    if let selectedId = selectedLevelId,
-                       contentStore.levels.contains(where: { $0.id == selectedId }) {
-                        LevelEditorView(level: contentStore.levelBinding(id: selectedId))
-                            .id(selectedId)
-                    } else {
-                        ContentUnavailableView {
-                            Label("No Level Selected", systemImage: "square.stack.3d.up")
-                        } description: {
-                            Text("Select a level from the list to edit it")
-                        }
-                    }
-                } else if case .trigger(let triggerId) = selectedSidebarItem {
-                    if let selectedId = selectedScriptId,
-                       let ti = contentStore.triggers.firstIndex(where: { $0.id == triggerId }),
-                       contentStore.triggers[ti].scripts.contains(where: { $0.id == selectedId }) {
-                        ScriptView(script: contentStore.scriptBinding(triggerId: triggerId, scriptId: selectedId))
-                            .id(selectedId)
-                    } else {
-                        ContentUnavailableView {
-                            Label("No Script Selected", systemImage: "doc.text")
-                        } description: {
-                            Text("Select a script from the list to edit it")
-                        }
-                    }
-                } else {
-                    ContentUnavailableView {
-                        Label("Select a Trigger", systemImage: "text.word.spacing")
-                    }
+            // ── Detail column — only used for level editor ─────────────────
+            if case .levels = selectedSidebarItem,
+               let selectedId = selectedLevelId,
+               contentStore.levels.contains(where: { $0.id == selectedId }) {
+                LevelEditorView(level: contentStore.levelBinding(id: selectedId))
+                    .id(selectedId)
+            } else {
+                ContentUnavailableView {
+                    Label("No Level Selected", systemImage: "square.stack.3d.up")
+                } description: {
+                    Text("Select a level from the list to edit it")
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .navigationSplitViewStyle(.balanced)
         .sheet(isPresented: $showingNewLevelSheet) {
             NewLevelSheet(contentStore: contentStore)
         }
+        .sheet(isPresented: $showingNewScriptSheet) {
+            NewScriptSheet(contentStore: contentStore)
+        }
         .sheet(isPresented: $showingNewTriggerSheet) {
             NewTriggerSheet(contentStore: contentStore)
+        }
+        .sheet(isPresented: $showingNewNPCSheet) {
+            NewNPCSheet(contentStore: contentStore)
         }
         .sheet(isPresented: $showingExportSheet) {
             ExportView(contentStore: contentStore, isPresented: $showingExportSheet)
@@ -234,6 +194,22 @@ struct MacContentView: View {
                 showingAlert: $showingImportAlert,
                 alertMessage: $importAlertMessage
             )
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var exportImportMenu: some ToolbarContent {
+        ToolbarItem {
+            Menu {
+                Button { showingExportSheet = true } label: {
+                    Label("Export", systemImage: "square.and.arrow.up")
+                }
+                Button { showingImportSheet = true } label: {
+                    Label("Import", systemImage: "square.and.arrow.down")
+                }
+            } label: {
+                Label("More", systemImage: "ellipsis.circle")
+            }
         }
     }
 }

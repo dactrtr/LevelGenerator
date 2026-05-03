@@ -4,57 +4,48 @@ struct ScriptView: View {
     @Binding var script: SavedScript
     @Environment(\.dismiss) var dismiss
 
-    @State private var selectedImage: String = "player"
+    @State private var selectedVideo: String = "player"
     @State private var currentDialog: String = ""
+    @State private var currentScreen: String = ""
     @State private var currentName: String
-    @State private var dialogs: [(image: String, text: String, key: String)]
+    @State private var dialogs: [(video: String, text: String, key: String, screen: String?)]
 
-    let availableImages = [
-        "player", "playerWorry", "playerSurprise",
-        "radioHand", "radioPocket", "radioRing",
-        "notesHand", "playerHappy", "playerAngry", "playerSleepy", "playerCry"
+    let availableVideos = [
+        "player", "playerWorry", "playerSurprise", "playerHappy",
+        "playerAngry", "playerSleepy", "playerScared", "playerCry",
+        "radioHand", "radioPocket", "radioRing", "notesHand"
     ]
-
-    // Propiedades públicas para SavedScript.update(with:)
-    var scriptName: String { currentName }
-    var scriptDialogs: [(image: String, text: String, key: String)] { dialogs }
 
     init(script: Binding<SavedScript>) {
         self._script = script
         _currentName = State(initialValue: script.wrappedValue.name)
-        _dialogs = State(initialValue: script.wrappedValue.dialogs.map { dialog in
-            (image: dialog.image, text: dialog.text, key: dialog.key)
+        _dialogs = State(initialValue: script.wrappedValue.dialogs.map {
+            (video: $0.video, text: $0.text, key: $0.key, screen: $0.screen)
         })
     }
 
-    // MARK: - Computed: key generation
-
     private func generateScriptKey() -> String {
         let formattedName = currentName.lowercased().replacingOccurrences(of: " ", with: "-")
-        let dialogCount = dialogs.filter { $0.key.starts(with: formattedName) }.count + 1
-        let numberString = String(format: "%02d", dialogCount)
-        return "\(formattedName)-\(numberString)"
+        let count = dialogs.filter { $0.key.starts(with: formattedName) }.count + 1
+        return "\(formattedName)-\(String(format: "%02d", count))"
     }
 
-    // MARK: - Computed: outputs via ScriptLuaGenerator
-
     var generatedLuaScript: String {
-        let tempScript = SavedScript(
-            name: currentName,
-            dialogs: dialogs.map { SavedScript.SavedDialog(image: $0.image, text: $0.text, key: $0.key) }
-        )
-        return ScriptLuaGenerator.lua(for: tempScript)
+        ScriptLuaGenerator.lua(for: currentSavedScript)
     }
 
     var generatedLocalization: String {
-        let tempScript = SavedScript(
-            name: currentName,
-            dialogs: dialogs.map { SavedScript.SavedDialog(image: $0.image, text: $0.text, key: $0.key) }
-        )
-        return ScriptLuaGenerator.localization(for: tempScript)
+        ScriptLuaGenerator.localization(for: currentSavedScript)
     }
 
-    // MARK: - Body
+    private var currentSavedScript: SavedScript {
+        SavedScript(
+            name: currentName,
+            dialogs: dialogs.map {
+                SavedScript.SavedDialog(video: $0.video, text: $0.text, key: $0.key, screen: $0.screen.flatMap { $0.isEmpty ? nil : $0 })
+            }
+        )
+    }
 
     var body: some View {
         HStack(spacing: 0) {
@@ -62,12 +53,10 @@ struct ScriptView: View {
             // ── Left Column: outputs ──────────────────────────────────────
             ScrollView {
                 VStack(spacing: 12) {
-
                     GroupBox {
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
-                                Text("Generated Lua Script")
-                                    .font(.headline)
+                                Text("Generated Lua Script").font(.headline)
                                 Spacer()
                                 CopyButton(content: generatedLuaScript)
                             }
@@ -76,12 +65,10 @@ struct ScriptView: View {
                                 .frame(minHeight: 140)
                         }
                     }
-
                     GroupBox {
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
-                                Text("Generated Localization")
-                                    .font(.headline)
+                                Text("Generated Localization").font(.headline)
                                 Spacer()
                                 CopyButton(content: generatedLocalization)
                             }
@@ -95,13 +82,13 @@ struct ScriptView: View {
             }
             .frame(width: 400)
 
-            // ── Center Column: diálogos ───────────────────────────────────
+            // ── Center Column: dialogs ────────────────────────────────────
             VStack(spacing: 0) {
                 ScrollView {
                     LazyVStack(spacing: 12) {
                         ForEach(Array(dialogs.enumerated()), id: \.offset) { index, dialog in
                             DialogRow(
-                                image: dialog.image,
+                                video: dialog.video,
                                 text: dialog.text,
                                 onDelete: { dialogs.remove(at: index) }
                             )
@@ -113,21 +100,18 @@ struct ScriptView: View {
             .frame(maxWidth: .infinity)
             .background(PlatformColor.background)
 
-            // ── Right Column: input de diálogo ────────────────────────────
+            // ── Right Column: input ───────────────────────────────────────
             VStack(spacing: 16) {
-
                 GroupBox("Select Character") {
                     ScrollView(.horizontal, showsIndicators: false) {
                         LazyHGrid(rows: [GridItem(.fixed(110))], spacing: 8) {
-                            ForEach(availableImages, id: \.self) { image in
-                                Button {
-                                    selectedImage = image
-                                } label: {
-                                    Image(image)
+                            ForEach(availableVideos, id: \.self) { video in
+                                Button { selectedVideo = video } label: {
+                                    Image(video)
                                         .resizable()
                                         .frame(width: 118, height: 94)
                                         .padding(8)
-                                        .background(selectedImage == image ? Color.blue.opacity(0.2) : Color.clear)
+                                        .background(selectedVideo == video ? Color.blue.opacity(0.2) : Color.clear)
                                         .cornerRadius(8)
                                 }
                             }
@@ -144,9 +128,7 @@ struct ScriptView: View {
                 GroupBox("Dialog Text") {
                     TextEditor(text: Binding(
                         get: { currentDialog },
-                        set: { newValue in
-                            if newValue.count <= 94 { currentDialog = newValue }
-                        }
+                        set: { if $0.count <= 94 { currentDialog = $0 } }
                     ))
                     .frame(height: 100)
                     .overlay(
@@ -163,18 +145,23 @@ struct ScriptView: View {
                     )
                 }
 
+                GroupBox("Screen (opcional)") {
+                    TextField("Nombre de imagen", text: $currentScreen)
+                        .textFieldStyle(.roundedBorder)
+                }
+
                 Button {
-                    if !currentDialog.isEmpty && !currentName.isEmpty {
-                        dialogs.append((
-                            image: selectedImage,
-                            text: currentDialog,
-                            key: generateScriptKey()
-                        ))
-                        currentDialog = ""
-                    }
+                    guard !currentDialog.isEmpty && !currentName.isEmpty else { return }
+                    dialogs.append((
+                        video: selectedVideo,
+                        text: currentDialog,
+                        key: generateScriptKey(),
+                        screen: currentScreen.isEmpty ? nil : currentScreen
+                    ))
+                    currentDialog = ""
+                    currentScreen = ""
                 } label: {
-                    Text("Add Dialog")
-                        .frame(maxWidth: .infinity)
+                    Text("Add Dialog").frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(currentDialog.isEmpty || currentName.isEmpty)
@@ -189,9 +176,7 @@ struct ScriptView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button("Save") {
-                    var updatedScript = script
-                    updatedScript.update(with: self)
-                    script = updatedScript
+                    script = currentSavedScript
                     dismiss()
                 }
             }

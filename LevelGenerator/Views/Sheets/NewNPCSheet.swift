@@ -1,20 +1,20 @@
 import SwiftUI
 
-struct NewScriptSheet: View {
+struct NewNPCSheet: View {
     @ObservedObject var contentStore: ContentStore
     @Environment(\.dismiss) var dismiss
     @State private var name = ""
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("New Script")
+            Text("New NPC")
                 .font(.headline)
-            TextField("Script name (kebab-case)", text: $name)
+            TextField("NPC name", text: $name)
                 .textFieldStyle(.roundedBorder)
             HStack {
                 Button("Cancel") { dismiss() }
                 Button("Create") {
-                    contentStore.addScript(SavedScript(name: name))
+                    contentStore.addNPC(SavedNPC(name: name))
                     dismiss()
                 }
                 .buttonStyle(.borderedProminent)

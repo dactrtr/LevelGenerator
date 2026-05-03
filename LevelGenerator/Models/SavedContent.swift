@@ -151,9 +151,10 @@ struct SavedScript: Codable, Identifiable, Hashable {
     var dialogs: [SavedDialog]
 
     struct SavedDialog: Codable, Hashable {
-        var image: String
+        var video: String
         var text: String
         var key: String
+        var screen: String?
     }
 
     init(id: UUID = UUID(), name: String, dialogs: [SavedDialog] = []) {
@@ -162,21 +163,8 @@ struct SavedScript: Codable, Identifiable, Hashable {
         self.dialogs = dialogs
     }
 
-    mutating func update(with scriptView: ScriptView) {
-        name = scriptView.scriptName
-        dialogs = scriptView.scriptDialogs.map { dialog in
-            SavedDialog(image: dialog.image, text: dialog.text, key: dialog.key)
-        }
-    }
-
-    // Implementación de Hashable
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-
-    static func == (lhs: SavedScript, rhs: SavedScript) -> Bool {
-        lhs.id == rhs.id
-    }
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
+    static func == (lhs: SavedScript, rhs: SavedScript) -> Bool { lhs.id == rhs.id }
 }
 
 // MARK: - Trigger guardado
@@ -184,15 +172,18 @@ struct SavedScript: Codable, Identifiable, Hashable {
 struct SavedTrigger: Codable, Identifiable, Hashable {
     let id: UUID
     var name: String
-    var scripts: [SavedScript]
+    var triggerType: String?
+    var fallbackScript: String?
     var conditionalScripts: [ConditionalScript]
 
     init(id: UUID = UUID(), name: String,
-         scripts: [SavedScript] = [],
+         triggerType: String? = nil,
+         fallbackScript: String? = nil,
          conditionalScripts: [ConditionalScript] = []) {
         self.id = id
         self.name = name
-        self.scripts = scripts
+        self.triggerType = triggerType
+        self.fallbackScript = fallbackScript
         self.conditionalScripts = conditionalScripts
     }
 
@@ -200,13 +191,32 @@ struct SavedTrigger: Codable, Identifiable, Hashable {
     static func == (lhs: SavedTrigger, rhs: SavedTrigger) -> Bool { lhs.id == rhs.id }
 }
 
+struct SavedNPC: Codable, Identifiable, Hashable {
+    let id: UUID
+    var name: String
+    var conditionalScripts: [ConditionalScript]
+
+    init(id: UUID = UUID(), name: String, conditionalScripts: [ConditionalScript] = []) {
+        self.id = id
+        self.name = name
+        self.conditionalScripts = conditionalScripts
+    }
+
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
+    static func == (lhs: SavedNPC, rhs: SavedNPC) -> Bool { lhs.id == rhs.id }
+}
+
 // Clase para manejar la persistencia
 class ContentStore: ObservableObject {
     @Published var levels: [SavedLevel] = []
+    @Published var scripts: [SavedScript] = []
     @Published var triggers: [SavedTrigger] = []
+    @Published var npcs: [SavedNPC] = []
 
     private let levelsKey = "savedLevels"
+    private let scriptsKey = "savedScripts"
     private let triggersKey = "savedTriggers"
+    private let npcsKey = "savedNPCs"
 
     private let defaults: UserDefaults
 
@@ -216,136 +226,116 @@ class ContentStore: ObservableObject {
     }
 
     func loadContent() {
-        if let levelsData = defaults.data(forKey: levelsKey),
-           let decodedLevels = try? JSONDecoder().decode([SavedLevel].self, from: levelsData) {
-            levels = decodedLevels
+        if let data = defaults.data(forKey: levelsKey),
+           let decoded = try? JSONDecoder().decode([SavedLevel].self, from: data) {
+            levels = decoded
         }
-
-        if let triggersData = defaults.data(forKey: triggersKey),
-           let decodedTriggers = try? JSONDecoder().decode([SavedTrigger].self, from: triggersData) {
-            triggers = decodedTriggers
+        if let data = defaults.data(forKey: scriptsKey),
+           let decoded = try? JSONDecoder().decode([SavedScript].self, from: data) {
+            scripts = decoded
+        }
+        if let data = defaults.data(forKey: triggersKey),
+           let decoded = try? JSONDecoder().decode([SavedTrigger].self, from: data) {
+            triggers = decoded
+        }
+        if let data = defaults.data(forKey: npcsKey),
+           let decoded = try? JSONDecoder().decode([SavedNPC].self, from: data) {
+            npcs = decoded
         }
     }
 
     func saveContent() {
-        if let encodedLevels = try? JSONEncoder().encode(levels) {
-            defaults.set(encodedLevels, forKey: levelsKey)
-        }
-
-        if let encodedTriggers = try? JSONEncoder().encode(triggers) {
-            defaults.set(encodedTriggers, forKey: triggersKey)
-        }
+        if let encoded = try? JSONEncoder().encode(levels) { defaults.set(encoded, forKey: levelsKey) }
+        if let encoded = try? JSONEncoder().encode(scripts) { defaults.set(encoded, forKey: scriptsKey) }
+        if let encoded = try? JSONEncoder().encode(triggers) { defaults.set(encoded, forKey: triggersKey) }
+        if let encoded = try? JSONEncoder().encode(npcs) { defaults.set(encoded, forKey: npcsKey) }
     }
 
-    func addLevel(_ level: SavedLevel) {
-        levels.append(level)
-        saveContent()
-    }
+    // MARK: Levels
+    func addLevel(_ level: SavedLevel) { levels.append(level); saveContent() }
+    func updateLevel(at index: Int, with level: SavedLevel) { levels[index] = level; saveContent() }
+    func deleteLevel(at offsets: IndexSet) { levels.remove(atOffsets: offsets); saveContent() }
 
-    func updateLevel(at index: Int, with level: SavedLevel) {
-        levels[index] = level
-        saveContent()
-    }
+    // MARK: Scripts
+    func addScript(_ script: SavedScript) { scripts.append(script); saveContent() }
+    func updateScript(at index: Int, with script: SavedScript) { scripts[index] = script; saveContent() }
+    func deleteScript(at offsets: IndexSet) { scripts.remove(atOffsets: offsets); saveContent() }
 
-    func deleteLevel(at offsets: IndexSet) {
-        levels.remove(atOffsets: offsets)
-        saveContent()
-    }
+    // MARK: Triggers
+    func addTrigger(_ trigger: SavedTrigger) { triggers.append(trigger); saveContent() }
+    func updateTrigger(at index: Int, with trigger: SavedTrigger) { triggers[index] = trigger; saveContent() }
+    func deleteTrigger(at offsets: IndexSet) { triggers.remove(atOffsets: offsets); saveContent() }
 
-    func addTrigger(_ trigger: SavedTrigger) {
-        triggers.append(trigger)
-        saveContent()
-    }
+    // MARK: NPCs
+    func addNPC(_ npc: SavedNPC) { npcs.append(npc); saveContent() }
+    func updateNPC(at index: Int, with npc: SavedNPC) { npcs[index] = npc; saveContent() }
+    func deleteNPC(at offsets: IndexSet) { npcs.remove(atOffsets: offsets); saveContent() }
 
-    func updateTrigger(at index: Int, with trigger: SavedTrigger) {
-        triggers[index] = trigger
-        saveContent()
-    }
-
-    func deleteTrigger(at offsets: IndexSet) {
-        triggers.remove(atOffsets: offsets)
-        saveContent()
-    }
-
-    func addScript(_ script: SavedScript, to triggerId: UUID) {
-        guard let i = triggers.firstIndex(where: { $0.id == triggerId }) else { return }
-        triggers[i].scripts.append(script)
-        saveContent()
-    }
-
-    func deleteScript(scriptId: UUID, from triggerId: UUID) {
-        guard let ti = triggers.firstIndex(where: { $0.id == triggerId }),
-              let si = triggers[ti].scripts.firstIndex(where: { $0.id == scriptId })
-        else { return }
-        triggers[ti].scripts.remove(at: si)
-        saveContent()
-    }
-
-    // Estructura para exportar todo el contenido
+    // MARK: Export / Import
     struct ExportData: Codable {
         let levels: [SavedLevel]
+        let scripts: [SavedScript]
         let triggers: [SavedTrigger]
+        let npcs: [SavedNPC]
         let nodeStyles: [NodeStyle]
         let version: String
 
-        init(levels: [SavedLevel], triggers: [SavedTrigger]) {
+        init(levels: [SavedLevel], scripts: [SavedScript], triggers: [SavedTrigger], npcs: [SavedNPC]) {
             self.levels = levels
+            self.scripts = scripts
             self.triggers = triggers
+            self.npcs = npcs
             self.nodeStyles = UserDefaults.standard.data(forKey: "nodeStyles")
                 .flatMap { try? JSONDecoder().decode([NodeStyle].self, from: $0) } ?? []
-            self.version = "1.0"
+            self.version = "2.0"
         }
     }
 
-    // Exportar a String JSON
     func exportToJSON() -> String? {
-        let exportData = ExportData(levels: levels, triggers: triggers)
+        let data = ExportData(levels: levels, scripts: scripts, triggers: triggers, npcs: npcs)
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
-        if let jsonData = try? encoder.encode(exportData),
-           let jsonString = String(data: jsonData, encoding: .utf8) {
-            return jsonString
-        }
-        return nil
+        guard let jsonData = try? encoder.encode(data),
+              let jsonString = String(data: jsonData, encoding: .utf8) else { return nil }
+        return jsonString
     }
 
-    // Importar desde String JSON
     func importFromJSON(_ jsonString: String) -> Bool {
         guard let jsonData = jsonString.data(using: .utf8),
-              let importedData = try? JSONDecoder().decode(ExportData.self, from: jsonData) else {
-            return false
-        }
-        levels = importedData.levels
-        triggers = importedData.triggers
-        if let encodedStyles = try? JSONEncoder().encode(importedData.nodeStyles) {
-            UserDefaults.standard.set(encodedStyles, forKey: nodeStylesKey)
+              let imported = try? JSONDecoder().decode(ExportData.self, from: jsonData) else { return false }
+        levels = imported.levels
+        scripts = imported.scripts
+        triggers = imported.triggers
+        npcs = imported.npcs
+        if let encoded = try? JSONEncoder().encode(imported.nodeStyles) {
+            UserDefaults.standard.set(encoded, forKey: nodeStylesKey)
         }
         saveContent()
         return true
     }
 
-    // Importar y fusionar con el contenido existente
     func mergeFromJSON(_ jsonString: String) -> Bool {
         guard let jsonData = jsonString.data(using: .utf8),
-              let importedData = try? JSONDecoder().decode(ExportData.self, from: jsonData) else {
-            return false
-        }
+              let imported = try? JSONDecoder().decode(ExportData.self, from: jsonData) else { return false }
 
         let existingLevelIds = Set(levels.map { $0.id })
-        let newLevels = importedData.levels.filter { !existingLevelIds.contains($0.id) }
-        levels.append(contentsOf: newLevels)
+        levels.append(contentsOf: imported.levels.filter { !existingLevelIds.contains($0.id) })
+
+        let existingScriptIds = Set(scripts.map { $0.id })
+        scripts.append(contentsOf: imported.scripts.filter { !existingScriptIds.contains($0.id) })
 
         let existingTriggerIds = Set(triggers.map { $0.id })
-        let newTriggers = importedData.triggers.filter { !existingTriggerIds.contains($0.id) }
-        triggers.append(contentsOf: newTriggers)
+        triggers.append(contentsOf: imported.triggers.filter { !existingTriggerIds.contains($0.id) })
+
+        let existingNPCIds = Set(npcs.map { $0.id })
+        npcs.append(contentsOf: imported.npcs.filter { !existingNPCIds.contains($0.id) })
 
         let currentStyles = loadNodeStyles()
-        let existingRoomNumbers = Set(currentStyles.map { $0.roomNumber })
-        let newStyles = importedData.nodeStyles.filter { !existingRoomNumbers.contains($0.roomNumber) }
-        if let encodedStyles = try? JSONEncoder().encode(currentStyles + newStyles) {
-            UserDefaults.standard.set(encodedStyles, forKey: nodeStylesKey)
+        let existingRooms = Set(currentStyles.map { $0.roomNumber })
+        let newStyles = imported.nodeStyles.filter { !existingRooms.contains($0.roomNumber) }
+        if let encoded = try? JSONEncoder().encode(currentStyles + newStyles) {
+            UserDefaults.standard.set(encoded, forKey: nodeStylesKey)
         }
-
         saveContent()
         return true
     }
@@ -356,7 +346,6 @@ extension ContentStore {
         Binding(
             get: {
                 guard let i = self.levels.firstIndex(where: { $0.id == id }) else {
-                    // Return a placeholder — view will re-render and stop using this binding
                     return SavedLevel(
                         id: id, name: "", level: 0, roomNumber: 0, tile: 0,
                         light: 1.0, shadow: false,
@@ -370,6 +359,22 @@ extension ContentStore {
             set: {
                 if let i = self.levels.firstIndex(where: { $0.id == id }) {
                     self.updateLevel(at: i, with: $0)
+                }
+            }
+        )
+    }
+
+    func scriptBinding(id: UUID) -> Binding<SavedScript> {
+        Binding(
+            get: {
+                guard let i = self.scripts.firstIndex(where: { $0.id == id }) else {
+                    return SavedScript(id: id, name: "")
+                }
+                return self.scripts[i]
+            },
+            set: {
+                if let i = self.scripts.firstIndex(where: { $0.id == id }) {
+                    self.updateScript(at: i, with: $0)
                 }
             }
         )
@@ -391,20 +396,18 @@ extension ContentStore {
         )
     }
 
-    func scriptBinding(triggerId: UUID, scriptId: UUID) -> Binding<SavedScript> {
+    func npcBinding(id: UUID) -> Binding<SavedNPC> {
         Binding(
             get: {
-                guard let ti = self.triggers.firstIndex(where: { $0.id == triggerId }),
-                      let si = self.triggers[ti].scripts.firstIndex(where: { $0.id == scriptId })
-                else { return SavedScript(id: scriptId, name: "") }
-                return self.triggers[ti].scripts[si]
+                guard let i = self.npcs.firstIndex(where: { $0.id == id }) else {
+                    return SavedNPC(id: id, name: "")
+                }
+                return self.npcs[i]
             },
             set: {
-                guard let ti = self.triggers.firstIndex(where: { $0.id == triggerId }),
-                      let si = self.triggers[ti].scripts.firstIndex(where: { $0.id == scriptId })
-                else { return }
-                self.triggers[ti].scripts[si] = $0
-                self.saveContent()
+                if let i = self.npcs.firstIndex(where: { $0.id == id }) {
+                    self.updateNPC(at: i, with: $0)
+                }
             }
         )
     }

@@ -1,22 +1,22 @@
 import SwiftUI
 
 struct DialogRow: View {
-    let image: String
+    let video: String
     let text: String
     let onDelete: () -> Void
-    
+
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            Image(image)
+            Image(video)
                 .resizable()
                 .frame(width: 118, height: 94)
-            
+
             Text(text)
                 .lineLimit(nil)
                 .multilineTextAlignment(.leading)
-            
+
             Spacer()
-            
+
             Button(action: onDelete) {
                 Image(systemName: "trash")
                     .foregroundColor(.red)
@@ -27,4 +27,4 @@ struct DialogRow: View {
         .background(PlatformColor.secondaryBackground)
         .cornerRadius(8)
     }
-} 
+}
