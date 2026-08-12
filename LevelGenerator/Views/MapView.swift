@@ -2,7 +2,8 @@ import SwiftUI
 
 struct MapView: View {
     let placedItems: [PlacedItem]
-    let selectedItem: String
+    let selectedProp: String
+    let selectedGameItem: String
     let currentX: Double
     let currentY: Double
     let selectedEnemy: String
@@ -22,6 +23,7 @@ struct MapView: View {
     let doorDownLeadsTo: Int
     let doorLeftLeadsTo: Int
     let level: Int
+    let selectedMode: ControlMode
     
     var body: some View {
         ZStack {
@@ -43,7 +45,7 @@ struct MapView: View {
                         if !showTriggerPreview {
                             ZStack {
                                 Circle()
-                                    .fill(item.itemType == .furniture ? Color.green : Color.red)
+                                    .fill(getItemColor(for: item.itemType))
                                     .frame(width: 16, height: 16)
                                 Text("\(placedItems.prefix(index + 1).filter { $0.itemType == item.itemType }.count)")
                                     .foregroundColor(.white)
@@ -57,21 +59,31 @@ struct MapView: View {
             }
             
             if !showTriggerPreview {
-                Image(selectedItem)
-                    .resizable()
-                    .frame(width: 32, height: 32)
-                    .position(x: currentX, y: currentY)
-                
-                Image(selectedEnemy)
-                    .resizable()
-                    .frame(width: selectedEnemy == "frogcolli" ? 40 : 32,
-                           height: selectedEnemy == "frogcolli" ? 40 : 32)
-                    .position(x: enemyX, y: enemyY)
+                if selectedMode == .props {
+                    Image(selectedProp)
+                        .resizable()
+                        .frame(width: 32, height: 32)
+                        .position(x: currentX, y: currentY)
+                        .opacity(0.6)
+                } else if selectedMode == .items {
+                    Image(selectedGameItem)
+                        .resizable()
+                        .frame(width: 48, height: 48)
+                        .position(x: currentX, y: currentY)
+                        .opacity(0.6)
+                } else if selectedMode == .enemies {
+                    Image(selectedEnemy)
+                        .resizable()
+                        .frame(width: selectedEnemy == "frogcolli" ? 40 : 32,
+                               height: selectedEnemy == "frogcolli" ? 40 : 32)
+                        .position(x: enemyX, y: enemyY)
+                        .opacity(0.6)
+                }
             }
             
             if showTriggerPreview {
                 Rectangle()
-                    .stroke(Color.purple.opacity(0.5), lineWidth: 1)
+                    .stroke(Color.purple.opacity(0.5), lineWidth: 3)
                     .frame(width: triggerWidth, height: triggerHeight)
                     .position(x: triggerX, y: triggerY)
             }
@@ -95,6 +107,7 @@ struct MapView: View {
                                 .foregroundColor(.white)
                                 .font(.system(size: 10, weight: .bold))
                         }
+                        .offset(x: (item.width ?? 60)/2 - 8, y: -(item.height ?? 30)/2 + 8)
                     }
                     .position(x: item.x, y: item.y)
                 }
@@ -160,5 +173,18 @@ struct MapView: View {
         .frame(width: 400, height: 240)
         .background(Color.white)
         .clipped()
+    }
+    
+    private func getItemColor(for itemType: ItemType) -> Color {
+        switch itemType {
+        case .prop:
+            return .green
+        case .enemy:
+            return .red
+        case .item:
+            return .purple
+        case .trigger:
+            return .purple
+        }
     }
 } 

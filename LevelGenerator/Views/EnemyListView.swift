@@ -9,9 +9,11 @@ struct EnemyListView: View {
                 .font(.headline)
                 .padding(.top)
             
+            let enemyItems = placedItems.filter { $0.itemType == .enemy }
+            ItemCounterView(title: "Enemies", currentCount: enemyItems.count, maxCount: 20)
+            
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
-                    let enemyItems = placedItems.filter { $0.itemType == .enemy }
                     ForEach(Array(enemyItems.enumerated()), id: \.element.id) { index, item in
                         EnemyRow(item: item, index: index) {
                             if let index = placedItems.firstIndex(where: { $0.id == item.id }) {

@@ -1,13 +1,15 @@
 import SwiftUI
 
 enum ControlMode: String, CaseIterable {
+    case props = "Props"
     case items = "Items"
     case enemies = "Enemies"
     case triggers = "Triggers"
 }
 
 struct UnifiedControlView: View {
-    @Binding var selectedItem: String
+    @Binding var selectedProp: String
+    @Binding var selectedGameItem: String
     @Binding var selectedEnemy: String
     @Binding var currentX: Double
     @Binding var currentY: Double
@@ -36,10 +38,23 @@ struct UnifiedControlView: View {
             
             // Content based on selected mode
             switch selectedMode {
+            case .props:
+                VStack(spacing: 0) {
+                    AddPropView(
+                        selectedProp: $selectedProp,
+                        currentX: $currentX,
+                        currentY: $currentY,
+                        placedItems: $placedItems
+                    )
+                    
+                    Divider()
+                    
+                    PropListView(placedItems: $placedItems)
+                }
             case .items:
                 VStack(spacing: 0) {
                     AddItemView(
-                        selectedItem: $selectedItem,
+                        selectedItem: $selectedGameItem,
                         currentX: $currentX,
                         currentY: $currentY,
                         placedItems: $placedItems
@@ -48,7 +63,6 @@ struct UnifiedControlView: View {
                     Divider()
                     
                     ItemListView(placedItems: $placedItems)
-                   
                 }
             case .enemies:
                 VStack(spacing: 0) {

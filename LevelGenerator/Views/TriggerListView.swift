@@ -8,9 +8,13 @@ struct TriggerListView: View {
     }
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 8) {
-                ForEach(Array(triggerItems.enumerated()), id: \.element.id) { index, item in
+        let triggerCount = triggerItems.count
+        VStack(alignment: .leading, spacing: 0) {
+            ItemCounterView(title: "Triggers", currentCount: triggerCount, maxCount: 20)
+                .padding([.top, .horizontal])
+            ScrollView {
+                VStack(spacing: 8) {
+                    ForEach(Array(triggerItems.enumerated()), id: \.element.id) { index, item in
                     HStack {
                         VStack(alignment: .leading) {
                             Text("Trigger \(index + 1)")
@@ -26,6 +30,12 @@ struct TriggerListView: View {
                                 Text("Script: \(script)")
                                     .font(.caption)
                             }
+                            
+                            if let triggerType = item.triggerType {
+                                Text("Type: \(triggerType)")
+                                    .font(.caption)
+                                    .foregroundColor(.purple)
+                            }
                         }
                         
                         Spacer()
@@ -40,12 +50,14 @@ struct TriggerListView: View {
                         }
                         .buttonStyle(.borderless)
                     }
-                    .padding()
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
                     .background(PlatformColor.secondaryBackground)
                     .cornerRadius(8)
+                    .padding(.horizontal, 8)
+                    }
                 }
             }
-            .padding()
         }
     }
 } 

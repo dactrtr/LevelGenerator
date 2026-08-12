@@ -20,8 +20,22 @@ struct JsonPreviewView: View {
     let doorRightLeadsTo: Int
     let doorDownLeadsTo: Int
     let doorLeftLeadsTo: Int
+    let comic: Bool
+    let comicName: String
+    let comicEnter: Bool
     let onReset: () -> Void
     @State private var showCopiedAlert = false
+    
+    
+    private func assignMissingPropIds() -> [PlacedItem] {
+        var updatedItems = placedItems
+        for i in 0..<updatedItems.count {
+            if updatedItems[i].itemType == .prop && updatedItems[i].propId == nil {
+                updatedItems[i].propId = UUID().uuidString
+            }
+        }
+        return updatedItems
+    }
     
     var body: some View {
         VStack(spacing: 8) {
@@ -50,7 +64,7 @@ struct JsonPreviewView: View {
                 }) {
                     HStack {
                         Image(systemName: "doc.on.doc")
-                        Text("Copy JSON")
+                        Text("Copy level")
                     }
                     .foregroundColor(.blue)
                 }
@@ -63,16 +77,19 @@ struct JsonPreviewView: View {
     }
     
     private func generateJson() -> String {
-        let furnitureItems = placedItems.filter { $0.itemType == .furniture }
+        let updatedItems = assignMissingPropIds()
+        let propItems = updatedItems.filter { $0.itemType == .prop }
         let enemyItems = placedItems.filter { $0.itemType == .enemy }
         let triggerItems = placedItems.filter { $0.itemType == .trigger }
+        let gameItems = placedItems.filter { $0.itemType == .item }
         
-        let furnitureJson = furnitureItems.map { item in
+        let propsJson = propItems.map { item in
             """
                     {
                         type = "\(item.type)",
                         x = \(Int(item.x)),
-                        y = \(Int(item.y))\(item.nocollide ? ",\n            nocollide = true" : "")
+                        y = \(Int(item.y))\(item.nocollide ? ",\n                    nocollide = true" : ""),
+                        id = \"\(item.propId!)\"
                     }
             """
         }.joined(separator: ",\n")
@@ -83,7 +100,8 @@ struct JsonPreviewView: View {
                         name = "\(item.type)",
                         x = \(Int(item.x)),
                         y = \(Int(item.y)),
-                        speed = \(item.speed ?? 1.0)
+                        speed = \(item.speed ?? 1.0),
+                        id = \"\(item.enemyId!)\"
                     }
             """
         }.joined(separator: ",\n")
@@ -96,20 +114,29 @@ struct JsonPreviewView: View {
                         y = \(Int(item.y)),
                         width = \(Int(item.width ?? 60)),
                         height = \(Int(item.height ?? 30)),
-                        script = "\(item.script ?? "")"
+                        script = "\(item.script ?? "")"\(item.triggerType == "cutscene" ? ",\n                    type = \"cutscene\"" : (item.triggerType == "call" ? ",\n                    type = \"call\"" : (item.triggerType == "counter" ? ",\n                    type = \"counter\"" : (item.triggerType == "story" ? ",\n                    type = \"story\"" : ",\n                    type = \"search\""))))
                     }
             """
         }.joined(separator: ",\n")
         
-        // Generar el JSON de las puertas
+        let itemsJson = gameItems.map { item in
+            """
+                    {
+                        type = '\(item.type)',
+                        x = \(Int(item.x)),
+                        y = \(Int(item.y))\(item.type == "crewmember" ? ",\n  taken = false" : "")\(item.crewId != nil ? ",\n  crewId = \"\(item.crewId!)\"" : "")
+                    }
+            """
+        }.joined(separator: ",\n")
+        
         let doorsJson = [
             (direction: "top", isOpen: doorTop, leadsTo: doorTopLeadsTo),
             (direction: "right", isOpen: doorRight, leadsTo: doorRightLeadsTo),
             (direction: "down", isOpen: doorDown, leadsTo: doorDownLeadsTo),
             (direction: "left", isOpen: doorLeft, leadsTo: doorLeftLeadsTo)
         ]
-        .filter { $0.isOpen }
-        .map { door in
+            .filter { $0.isOpen }
+            .map { door in
             """
                     {
                         direction = '\(door.direction)',
@@ -117,11 +144,10 @@ struct JsonPreviewView: View {
                         leadsTo = \(level * 100 + door.leadsTo)
                     }
             """
-        }
-        .joined(separator: ",\n")
+            }
+            .joined(separator: ",\n")
         
         return """
-        --\(floorNumber)
         {
             floor = {
                 level = \(level),
@@ -133,8 +159,16 @@ struct JsonPreviewView: View {
                 doors = {
         \(doorsJson)
                 },
-                comic = {},
-                items = {},
+        
+                comic = {
+        \(comic ? """
+                        wasPlayed = false,
+                        name = "\(comicName)"\(comicEnter ? ",\n play = \"enter\"" : ",\n   play = nil")
+                """ : "") 
+                },
+                items = {
+        \(itemsJson)
+                },
                 triggers = {
         \(triggersJson)
                 },
@@ -142,7 +176,7 @@ struct JsonPreviewView: View {
         \(enemiesJson)
                 },
                 props = {
-        \(furnitureJson)
+        \(propsJson)
                 }
             }
         }
@@ -150,12 +184,12 @@ struct JsonPreviewView: View {
     }
     
     private func copyToClipboard() {
-        #if os(iOS)
+#if os(iOS)
         UIPasteboard.general.string = generateJson()
-        #else
+#else
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(generateJson(), forType: .string)
-        #endif
+#endif
         showCopiedAlert = true
     }
-} 
+}

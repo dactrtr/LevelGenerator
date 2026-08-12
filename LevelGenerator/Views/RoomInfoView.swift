@@ -14,6 +14,9 @@ struct RoomInfoView: View {
     @Binding var doorRightLeadsTo: Int
     @Binding var doorDownLeadsTo: Int
     @Binding var doorLeftLeadsTo: Int
+    @Binding var comic: Bool
+    @Binding var comicName: String
+    @Binding var comicEnter: Bool
     @State private var isExpanded = true
     
     var body: some View {
@@ -77,6 +80,21 @@ struct RoomInfoView: View {
                         Slider(value: $light)
                             .tint(.blue)
                     }
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(alignment: .center, spacing: 8) {
+                            Toggle("⬆️", isOn: $comic)
+                                .labelsHidden()
+                            if comic {
+                                TextField("Comic Name", text: $comicName)
+                                    .font(.footnote)
+                                    .textFieldStyle(.roundedBorder)
+                                Toggle("on enter", isOn: $comicEnter)
+                            }
+                            
+                        }
+                        
+                    }
+                   
                 }
                 .padding(.vertical, 4)
             }
@@ -89,6 +107,7 @@ struct RoomInfoView: View {
                         .foregroundStyle(.secondary)
                     
                     HStack(spacing: 8) {
+                        Image(systemName: "arrowshape.up.circle")
                         Toggle("⬆️", isOn: $doorTop)
                             .labelsHidden()
                         if doorTop {
@@ -105,6 +124,7 @@ struct RoomInfoView: View {
                     }
                     
                     HStack(spacing: 8) {
+                        Image(systemName: "arrowshape.right.circle")
                         Toggle("➡️", isOn: $doorRight)
                             .labelsHidden()
                         if doorRight {
@@ -121,6 +141,7 @@ struct RoomInfoView: View {
                     }
                     
                     HStack(spacing: 8) {
+                        Image(systemName: "arrowshape.down.circle")
                         Toggle("⬇️", isOn: $doorDown)
                             .labelsHidden()
                         if doorDown {
@@ -137,6 +158,7 @@ struct RoomInfoView: View {
                     }
                     
                     HStack(spacing: 8) {
+                        Image(systemName: "arrowshape.left.circle")
                         Toggle("⬅️", isOn: $doorLeft)
                             .labelsHidden()
                         if doorLeft {
@@ -154,6 +176,6 @@ struct RoomInfoView: View {
                 }
             }
         }
-        .padding(16)
+        .padding(4)
     }
 } 

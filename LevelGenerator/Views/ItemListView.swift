@@ -11,8 +11,8 @@ struct ItemListView: View {
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
-                    let furnitureItems = placedItems.filter { $0.itemType == .furniture }
-                    ForEach(Array(furnitureItems.enumerated()), id: \.element.id) { index, item in
+                    let items = placedItems.filter { $0.itemType == .item }
+                    ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                         ItemRow(item: item, index: index) {
                             if let index = placedItems.firstIndex(where: { $0.id == item.id }) {
                                 placedItems.remove(at: index)
@@ -21,7 +21,6 @@ struct ItemListView: View {
                     }
                 }
             }
-//            .frame(maxHeight: .infinity)
             .background(Color.gray.opacity(0.1))
         }
     }
@@ -36,10 +35,10 @@ struct ItemRow: View {
         HStack(spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(Color.green.opacity(0.2))
+                    .fill(Color.purple.opacity(0.2))
                     .frame(width: 24, height: 24)
                 Text("\(index + 1)")
-                    .foregroundColor(.green)
+                    .foregroundColor(.purple)
                     .font(.system(size: 12, weight: .bold))
             }
             
@@ -51,21 +50,11 @@ struct ItemRow: View {
                     .foregroundColor(.secondary)
             }
             
-            if item.nocollide {
-                Text("No Collide")
-                    .font(.caption2)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Color.green.opacity(0.1))
-                    .foregroundColor(.green)
-                    .cornerRadius(4)
-            }
-            
             Spacer()
             
             Button(action: onDelete) {
                 Image(systemName: "trash")
-                    .foregroundColor(.green)
+                    .foregroundColor(.red)
             }
             .buttonStyle(.borderless)
         }
@@ -75,4 +64,5 @@ struct ItemRow: View {
         .cornerRadius(8)
         .padding(.horizontal, 8)
     }
-} 
+}
+
